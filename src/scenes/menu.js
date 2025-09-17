@@ -1,0 +1,44 @@
+export default class MenuScene extends Phaser.Scene {
+  constructor() {
+    super("MenuScene");
+  }
+
+  preload() {
+    // Load background + buttons
+    this.load.image("MenuBG", "src/ui/MenuBgmain-Sheet.png"); 
+
+    // Start button 
+    this.load.image("PlayBtn", "src/ui/play-btn.png");
+    this.load.image("PlayBtnHover", "src/ui/play-btn-hover.png");
+
+    // Settings button 
+    this.load.image("SettingsBtn", "src/ui/settings-btn.png");
+    this.load.image("SettingsBtnHover", "src/ui/settings-btn-hover.png");
+
+    // Exit button 
+    this.load.image("ExitBtn", "src/ui/exit-btn.png");
+    this.load.image("ExitBtnHover", "src/ui/exit-btn-hover.png");
+  }
+
+  create() {
+    // Add background (
+    this.add.image(400, 300, "MenuBG").setOrigin(0.5).setDisplaySize(800, 600);
+
+   // Helper to create a hoverable button
+    const makeButton = (x, y, key, hoverKey, callback) => {
+      const btn = this.add.image(x, y, key).setInteractive({ useHandCursor: true });
+
+      btn.on("pointerover", () => btn.setTexture(hoverKey));
+      btn.on("pointerout", () => btn.setTexture(key));
+      btn.on("pointerdown", callback);
+
+      return btn;
+    };
+
+    // Create buttons (on the left side)
+    makeButton(150, 250, "PlayBtn", "PlayBtnHover", () => this.scene.start("GameScene"));
+    makeButton(150, 300, "SettingsBtn", "SettingsBtnHover", () => console.log("Settings clicked"));
+    makeButton(150, 350, "ExitBtn", "ExitBtnHover", () => console.log("Exit clicked"));
+  }
+}
+  

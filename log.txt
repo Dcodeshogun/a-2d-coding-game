@@ -1,3 +1,22 @@
 game mechanic: sword slashes
 1:a stationary slash (more damage obv but at the cost of timing) // kills sucide robots in one hit?
 2:a slash attck that you can perform while moving
+
+pending urgent shit:
+player:
+health bars
+slash attack
+death anim
+damage anime
+
+
+pod:
+pod engage/
+shooting/
+
+suicide machine explosion/
+healthbar
+death anim/
+
+bg correction + extention
+bg wire parallax

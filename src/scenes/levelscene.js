@@ -4,8 +4,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('background', 'assets/tempbg-Sheet.png', {
-      frameWidth: 1200, frameHeight: 558
+    this.load.spritesheet('background', 'assets/mainbg-Sheet.png', {
+      frameWidth: 1600, frameHeight: 558
     });
 
     // Idle sheet 
@@ -22,9 +22,17 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('pod', 'assets/POD-Sheet.png', {
       frameWidth: 64, frameHeight: 64
     });
+    this.load.image('vignette', 'assets/vignette.jpg');
+
   }
 
   create() {
+  // GROUND
+      // Ground collider (invisible or use a ground sprite)
+      this.ground = this.add.rectangle(800, 454, 1600, 40, 0x00ff00); 
+      this.physics.add.existing(this.ground, true); // true = static body
+
+  // BACKGROUND    
     // Background anim (temporary)
     this.anims.create({
       key: 'bg-anim',
@@ -34,16 +42,28 @@ export default class GameScene extends Phaser.Scene {
     });
     this.bg = this.add.sprite(0, 0, 'background').setOrigin(0, 0);
     this.bg.play('bg-anim');
-
+    // Darkening the background 
+    let bgDark = this.add.rectangle(600, 300, 2000, 600, 0x000000, 0.3);
+    bgDark.setDepth(1);  // above background
+    this.bg.setDepth(0); // keep bg behind everything
+  
+  // BOUNDS
+  this.physics.world.setBounds(0, 0, 1600, 558); 
+  this.cameras.main.setBounds(0, 0, 1600, 558);
+ 
     // Create player once
-    this.player = this.physics.add.sprite(100, 400, 'player');
+    this.player = this.physics.add.sprite(100, 433, 'player');
     this.player.setScale(1.2).setCollideWorldBounds(true);
     this.player.setOrigin(0.5, 1);
-    this.player.health = 1140
+    this.player.health = 140;
     this.player.maxHealth = 100;
-
+    this.cameras.main.startFollow(this.player);
+     
     // Pod 
-    this.pod = this.physics.add.sprite(300, 450, 'pod').setScale(3).setCollideWorldBounds(true);
+    this.pod = this.physics.add.sprite(100, 339, 'pod').setScale(3).setCollideWorldBounds(true);
+    
+    this.physics.add.collider(this.player, this.ground);
+    this.physics.add.collider(this.pod, this.ground);
 
     
     this.setupPlayerAnimations();
@@ -51,6 +71,15 @@ export default class GameScene extends Phaser.Scene {
 
     //  Play idle
     this.player.play('player-idle');
+    
+    let vignette = this.add.image(800, 279, 'vignette');
+    vignette.setScrollFactor(0); // stays fixed on screen
+    vignette.setDepth(999);      // always on top
+    vignette.setAlpha(0.5);      // tweak intensity   
+
+
+
+
   }
 
   setupPlayerAnimations() {
