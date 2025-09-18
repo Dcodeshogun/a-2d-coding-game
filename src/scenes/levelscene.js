@@ -9,7 +9,7 @@ export default class GameScene extends Phaser.Scene {
     });
     this.load.image('bg-layer2', 'assets/parallparallaxtrusses-Sheet.png');
     this.load.spritesheet('wires', 'assets/parallaxwires-Sheet.png', {
-     frameWidth: 1600, frameHeight: 558
+     frameWidth: 1800, frameHeight: 558
       });
 
 
