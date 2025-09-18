@@ -17,7 +17,7 @@ export default class MenuScene extends Phaser.Scene {
 
     // Exit button 
     this.load.image("ExitBtn", "src/ui/exit-btn.png");
-    this.load.image("ExitBtnHover", "src/ui/exit-btn-hover.png");
+    this.load.image("ExitBtnHover", "src/ui/exit-btn-hover..png");
   }
 
   create() {
@@ -36,9 +36,9 @@ export default class MenuScene extends Phaser.Scene {
     };
 
     // Create buttons (on the left side)
-    makeButton(150, 250, "PlayBtn", "PlayBtnHover", () => this.scene.start("GameScene"));
-    makeButton(150, 300, "SettingsBtn", "SettingsBtnHover", () => console.log("Settings clicked"));
-    makeButton(150, 350, "ExitBtn", "ExitBtnHover", () => console.log("Exit clicked"));
+    makeButton(185, 250, "PlayBtn", "PlayBtnHover", () => this.scene.start('BootScene'));
+    makeButton(185, 300, "SettingsBtn", "SettingsBtnHover", () => console.log("Settings clicked"));
+    makeButton(185, 350, "ExitBtn", "ExitBtnHover", () => console.log("Exit clicked"));
   }
 }
   

@@ -1,3 +1,7 @@
+import {Player} from '../objects/player.js';
+import {Pod} from '../objects/pod.js';
+
+
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
@@ -27,7 +31,12 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('pod', 'assets/POD-Sheet.png', {
       frameWidth: 64, frameHeight: 64
     });
-    this.load.image('vignette', 'assets/vignette.jpg');
+    this.load.spritesheet('pod-walk', 'assets/POD-move-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('pod-engage', 'assets/POD-engage-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('pod-fire', 'assets/POD-fire-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.image('bullet', 'assets/POD-shoot-Sheet.png')
+
+    this.load.image('vignette', 'assets/vignette-rect.png');
 
   }
 
@@ -41,7 +50,7 @@ export default class GameScene extends Phaser.Scene {
     // Background anim (temporary)
     this.anims.create({
       key: 'bg-anim',
-      frames: this.anims.generateFrameNumbers('background', { start: 0, end: 5 }),
+      frames: this.anims.generateFrameNumbers('background', { start: 0, end: 0 }),
       frameRate: 12,
       repeat: -1
     });
@@ -75,22 +84,47 @@ export default class GameScene extends Phaser.Scene {
   this.physics.world.setBounds(0, 0, 1600, 558); 
   this.cameras.main.setBounds(0, 0, 1600, 558);
  
-    // Create player once
-    this.player = this.physics.add.sprite(100, 433, 'player');
-    this.player.setScale(1.2).setCollideWorldBounds(true);
-    this.player.setOrigin(0.5, 1);
-    this.player.health = 140;
-    this.player.maxHealth = 100;
-    this.cameras.main.startFollow(this.player);
-     
-    // Pod 
-    this.pod = this.physics.add.sprite(100, 339, 'pod').setScale(3).setCollideWorldBounds(true);
-    
+  // Create player using Player.js
+  this.player = new Player(this, 100, 433);
+  this.cameras.main.startFollow(this.player);
+
+  // Create pod using Pod.js
+  this.pod = new Pod(this, 100, 339,this.player);
+
+   /*   // --- POD Animations ---
+    this.anims.create({
+      key: 'pod-idle',
+      frames: this.anims.generateFrameNumbers('pod', { start: 0, end: 3 }),
+      frameRate: 6,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'pod-walk',
+      frames: this.anims.generateFrameNumbers('pod-walk', { start: 0, end: 3 }),
+      frameRate: 8,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'pod-engage',
+      frames: this.anims.generateFrameNumbers('pod-engage', { start: 0, end: 3 }),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'pod-fire-walk',
+      frames: this.anims.generateFrameNumbers('pod-fire-walk', { start: 0, end: 3 }),
+      frameRate: 12,
+      repeat: -1
+    }); */
+
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.collider(this.pod, this.ground);
 
     
-    this.setupPlayerAnimations();
+    
     this.setupPlayerMovement();
 
     //  Play idle
@@ -106,50 +140,44 @@ export default class GameScene extends Phaser.Scene {
 
   }
 
-  setupPlayerAnimations() {
-   
-    this.anims.create({
-      key: 'player-idle',
-      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 5 }),
-      frameRate: 8,
-      repeat: -1
-    });
   
-    this.anims.create({
-      key: 'player-walk',
-      frames: this.anims.generateFrameNumbers('walk', { start: 0, end: 7 }),
-      frameRate: 10,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: 'pod-idle',
-      frames: this.anims.generateFrameNumbers('pod', { start: 0, end: 9 }),
-      frameRate: 8,
-      repeat: -1
-    });
-    this.pod.play('pod-idle');
-  }
 
   setupPlayerMovement() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,S,A,D');
+     // Additional keys for Pod actions
+    this.podFireKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
   }
 
   update() {
-    this.player.setVelocityX(0);
+        this.player.setVelocityX(0);
+
+    let moving = false;
 
     if (this.cursors.left.isDown || this.wasd.A.isDown) {
-      this.player.setVelocityX(-250);
-      this.player.play('player-walk', true);
-      this.player.flipX = true;
+        this.player.setVelocityX(-250);
+        this.player.play('player-walk', true);
+        this.player.flipX = true;
+        moving = true;
     } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
-      this.player.setVelocityX(250);
-      this.player.play('player-walk', true);
-      this.player.flipX = false;
+        this.player.setVelocityX(250);
+        this.player.play('player-walk', true);
+        this.player.flipX = false;
+        moving = true;
     } else {
-      this.player.play('player-idle', true);
+        this.player.play('player-idle', true);
     }
+
+ if (Phaser.Input.Keyboard.JustDown(this.podFireKey)) {
+    this.pod.engageFire(this);
+}
+
+// Only update pod to walk/idle if not engaging or firing
+if (this.pod.state === 'idle' || this.pod.state === 'walk') {
+    if (moving) this.pod.walk();
+    else this.pod.idle();
+}
+
     
      if (this.player.anims.currentAnim) {
     if (this.player.anims.currentAnim.key === 'player-idle') {
@@ -162,6 +190,6 @@ export default class GameScene extends Phaser.Scene {
   this.bgLayer2.setScrollFactor(1.6); 
   this.wires.setScrollFactor(1.3);     
 
-    
+  this.pod.update();  
   }
 }
