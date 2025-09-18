@@ -7,6 +7,11 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('background', 'assets/mainbg-Sheet.png', {
       frameWidth: 1600, frameHeight: 558
     });
+    this.load.image('bg-layer2', 'assets/parallparallaxtrusses-Sheet.png');
+    this.load.spritesheet('wires', 'assets/parallaxwires-Sheet.png', {
+     frameWidth: 1600, frameHeight: 558
+      });
+
 
     // Idle sheet 
     this.load.spritesheet('player', 'assets/2B_idle-Sheet.png', {
@@ -44,8 +49,27 @@ export default class GameScene extends Phaser.Scene {
     this.bg.play('bg-anim');
     // Darkening the background 
     let bgDark = this.add.rectangle(600, 300, 2000, 600, 0x000000, 0.3);
-    bgDark.setDepth(1);  // above background
-    this.bg.setDepth(0); // keep bg behind everything
+    
+   
+
+    // Parallax backgrounds
+    this.bgLayer2 = this.add.image(0, 0, 'bg-layer2').setOrigin(0, 0);
+    this.anims.create({
+     key: 'wires-move',
+     frames: this.anims.generateFrameNumbers('wires', { start: 0, end: 5 }),
+     frameRate: 8,
+     repeat: -1
+      });
+
+      this.wires = this.add.sprite(0, 0, 'wires').setOrigin(0, 0);
+      this.wires.play('wires-move');
+      
+
+    // Depth ordering: front first
+    this.bg.setDepth(0); 
+    this.wires.setDepth(1);
+    this.bgLayer2.setDepth(2);
+    bgDark.setDepth(3); 
   
   // BOUNDS
   this.physics.world.setBounds(0, 0, 1600, 558); 
@@ -134,6 +158,10 @@ export default class GameScene extends Phaser.Scene {
       this.player.setScale(1.2); 
     }
   }
-  
+  // Parallax effect (slower scroll than main camera)
+  this.bgLayer2.setScrollFactor(1.6); 
+  this.wires.setScrollFactor(1.3);     
+
+    
   }
 }
