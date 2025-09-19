@@ -1,5 +1,7 @@
 import {Player} from '../objects/player.js';
 import {Pod} from '../objects/pod.js';
+import {Enemy} from '../objects/enemy.js';
+
 
 
 export default class GameScene extends Phaser.Scene {
@@ -31,10 +33,15 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('pod', 'assets/POD-Sheet.png', {
       frameWidth: 64, frameHeight: 64
     });
+    
     this.load.spritesheet('pod-walk', 'assets/POD-move-Sheet.png', { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('pod-engage', 'assets/POD-engage-Sheet.png', { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('pod-fire', 'assets/POD-fire-Sheet.png', { frameWidth: 64, frameHeight: 64 });
-    this.load.image('bullet', 'assets/POD-shoot-Sheet.png')
+    this.load.image('bullet', 'assets/POD-shoot-Sheet.png');
+    this.load.spritesheet('suicide-enemy-walk', "assets/suicide machine walk-Sheet.png", { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('suicide-enemy-explode', "assets/suicidemachine(explosion)-Sheet.png", { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('suicide-enemy-death', "assets/suicidemachineDEATH-Sheet.png", { frameWidth: 84, frameHeight: 64 });
+
 
     this.load.image('vignette', 'assets/vignette-rect.png');
 
@@ -42,7 +49,7 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
   // GROUND
-      // Ground collider (invisible or use a ground sprite)
+      // Ground collider 
       this.ground = this.add.rectangle(800, 454, 1600, 40, 0x00ff00); 
       this.physics.add.existing(this.ground, true); // true = static body
 
@@ -122,6 +129,33 @@ export default class GameScene extends Phaser.Scene {
 
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.collider(this.pod, this.ground);
+    // --- ENEMIES ---
+    this.enemies = this.physics.add.group({
+      classType: Enemy,
+      runChildUpdate: true
+    });
+
+    // Player–enemy overlap (explode when they touch)
+    this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
+      enemy.explode();
+    }, null, this);
+
+    // Spawn enemies every 3 seconds from right edges
+    this.time.addEvent({
+  delay: 8000,
+  loop: true,
+  callback: () => {
+    const cam = this.cameras.main;
+    const x = cam.worldView.x + cam.width + 50; // right edge
+    const y = 433; // ground level
+
+    let enemy = new Enemy(this, x, y, this.player);
+    this.enemies.add(enemy);
+
+    // Ensure enemy collides with ground
+    this.physics.add.collider(enemy, this.ground);
+  }
+});
 
     
     
