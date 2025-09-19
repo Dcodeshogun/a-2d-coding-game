@@ -28,6 +28,11 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('walk', 'assets/2B(run).png', {
       frameWidth: 128, frameHeight: 128
     });
+    // slash attack
+    this.load.spritesheet('slash', 'assets/2B_slash.png', {
+      frameWidth: 256, frameHeight: 159
+    });
+
 
     // Pod
     this.load.spritesheet('pod', 'assets/POD-Sheet.png', {
@@ -179,6 +184,7 @@ export default class GameScene extends Phaser.Scene {
   setupPlayerMovement() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,S,A,D');
+    this.slashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
      // Additional keys for Pod actions
     this.podFireKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
   }
@@ -187,7 +193,7 @@ export default class GameScene extends Phaser.Scene {
         this.player.setVelocityX(0);
 
     let moving = false;
-
+  if (!this.player.isAttacking) {
     if (this.cursors.left.isDown || this.wasd.A.isDown) {
         this.player.setVelocityX(-250);
         this.player.play('player-walk', true);
@@ -201,16 +207,22 @@ export default class GameScene extends Phaser.Scene {
     } else {
         this.player.play('player-idle', true);
     }
+  }
+
+    // Attack check
+  if (Phaser.Input.Keyboard.JustDown(this.slashKey)) {
+    this.player.attack();
+  }
 
  if (Phaser.Input.Keyboard.JustDown(this.podFireKey)) {
     this.pod.engageFire(this);
-}
+  }
 
-// Only update pod to walk/idle if not engaging or firing
-if (this.pod.state === 'idle' || this.pod.state === 'walk') {
-    if (moving) this.pod.walk();
-    else this.pod.idle();
-}
+  // Only update pod to walk/idle if not engaging or firing
+  if (this.pod.state === 'idle' || this.pod.state === 'walk') {
+      if (moving) this.pod.walk();
+      else this.pod.idle();
+  }
 
     
      if (this.player.anims.currentAnim) {

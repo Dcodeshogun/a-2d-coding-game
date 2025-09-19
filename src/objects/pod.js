@@ -49,7 +49,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     scene.anims.create({
       key: 'pod-fire',
       frames: scene.anims.generateFrameNumbers('pod-fire', { start: 0, end: 11 }),
-      frameRate: 8,
+      frameRate: 16,
       repeat: -1
     });
   }
@@ -61,10 +61,10 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
       this.fire();
       this.startFiring(scene);
 
-      // Stop firing after 12 seconds and return to idle
-      scene.time.delayedCall(12000, () => {
+      // Stop firing after 7seconds and return to idle
+      scene.time.delayedCall(7000, () => {
         this.stopFiring();
-        this.idle();
+        this.idle();               
       });
     });
   }
@@ -74,7 +74,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.isFiring = true;
 
     this.fireEvent = scene.time.addEvent({
-      delay: 200, // bullet spawn rate
+      delay: 100, // bullet spawn rate
       callback: () => {
         let bullet = this.bullets.get(this.x, this.y, 'bullet'); // replace with your bullet sprite key
         if (bullet) {
@@ -82,12 +82,12 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
           bullet.setVisible(true);
           bullet.body.enable = true;
           bullet.body.allowGravity = false;   
-          bullet.setVelocityX(this.flipX ? -600 : 600);
+          bullet.setVelocityX(this.flipX ? -900 : 900);
           bullet.setX(this.x + (this.flipX ? -50 : 50));
           bullet.setY(this.y);
           bullet.setScale(2.8);
 
-         /* // --- Add yellow glow effect ---
+         /* //  Add yellow glow effect
                 let glow = scene.add.image(bullet.x, bullet.y, 'bullet')
                     .setScale(3)         // bigger than bullet
                     .setAlpha(0.3)       // transparent

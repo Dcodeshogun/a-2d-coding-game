@@ -10,9 +10,9 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setCollideWorldBounds(true);
     ///SCALE SPRITES
-    this.walkScale = 2.4     // walk sprite scale
-    this.explodeScale = 4.5;   // explode sprite scale
-    this.deathScale = 2.6   // death sprite scale
+    this.walkScale = 2.5     // walk sprite scale
+    this.explodeScale = 4;   // explode sprite scale
+    this.deathScale = 2.8   // death sprite scale
 
     this.setOrigin(0.5, 1);       // bottom-aligned origin
     this.setScale(this.walkScale); 
