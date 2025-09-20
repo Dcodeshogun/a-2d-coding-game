@@ -28,6 +28,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('walk', 'assets/2B(run).png', {
       frameWidth: 128, frameHeight: 128
     });
+
     // slash attack
     this.load.spritesheet('slash', 'assets/2B_slash.png', {
       frameWidth: 256, frameHeight: 159
@@ -53,6 +54,18 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+   /// Fade out MenuScene BGM when starting levelscene
+    const menuScene = this.scene.get('MenuScene');
+    if (menuScene && menuScene.bgm) {
+        this.tweens.add({
+            targets: menuScene.bgm,
+            volume: 0,          // fade to 0
+            duration: 1000,     // 1 second fade
+            onComplete: () => menuScene.bgm.stop()
+        });
+    }
+
+
   // GROUND
       // Ground collider 
       this.ground = this.add.rectangle(800, 454, 1600, 40, 0x00ff00); 
@@ -96,44 +109,60 @@ export default class GameScene extends Phaser.Scene {
   this.physics.world.setBounds(0, 0, 1600, 558); 
   this.cameras.main.setBounds(0, 0, 1600, 558);
  
-  // Create player using Player.js
+  // player using Player.js
   this.player = new Player(this, 100, 433);
   this.cameras.main.startFollow(this.player);
-
-  // Create pod using Pod.js
+  
+  // pod using Pod.js
   this.pod = new Pod(this, 100, 339,this.player);
+  this.physics.add.collider(this.player, this.ground);
+  this.physics.add.collider(this.pod, this.ground);
+   
+   
+    
+    // --- HEALTH BAR (graphics-based) ---
+const barX = 20, barY = 20, barWidth = 260, barHeight = 9;
 
-   /*   // --- POD Animations ---
-    this.anims.create({
-      key: 'pod-idle',
-      frames: this.anims.generateFrameNumbers('pod', { start: 0, end: 3 }),
-      frameRate: 6,
-      repeat: -1
-    });
+// Background
+this.healthBarBg = this.add.graphics();
+this.healthBarBg.fillStyle(0x575349, 1); // dark muted background
+this.healthBarBg.fillRect(barX, barY, barWidth, barHeight);
+this.healthBarBg.setScrollFactor(0);
+this.healthBarBg.setDepth(999);
 
-    this.anims.create({
-      key: 'pod-walk',
-      frames: this.anims.generateFrameNumbers('pod-walk', { start: 0, end: 3 }),
-      frameRate: 8,
-      repeat: -1
-    });
+// Foreground
+this.healthBarFg = this.add.graphics();
+this.healthBarFg.setScrollFactor(0);
+this.healthBarFg.setDepth(1000);
 
-    this.anims.create({
-      key: 'pod-engage',
-      frames: this.anims.generateFrameNumbers('pod-engage', { start: 0, end: 3 }),
-      frameRate: 10,
-      repeat: -1
-    });
+// Current width (for smooth animation)
+this.currentBarWidth = barWidth;
 
-    this.anims.create({
-      key: 'pod-fire-walk',
-      frames: this.anims.generateFrameNumbers('pod-fire-walk', { start: 0, end: 3 }),
-      frameRate: 12,
-      repeat: -1
-    }); */
+// Update function
+this.updateHealthBar = () => {
+    let healthPercent = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
+    let targetWidth = healthPercent * barWidth;
 
-    this.physics.add.collider(this.player, this.ground);
-    this.physics.add.collider(this.pod, this.ground);
+    // Smoothly interpolate width
+    this.currentBarWidth = Phaser.Math.Linear(this.currentBarWidth, targetWidth, 0.1); // 0.1 = speed factor
+
+    // Determine color based on health
+    let color = 0xc8c3ad; // full health
+    if (healthPercent < 0.5) color = 0xaca793; // medium health
+    if (healthPercent < 0.25) color = 0xff0000; // low health (red)
+
+    // Draw foreground
+    this.healthBarFg.clear();
+    this.healthBarFg.fillStyle(color, 1);
+    this.healthBarFg.fillRect(barX, barY, this.currentBarWidth, barHeight);
+};
+
+// Initial draw
+this.updateHealthBar();
+
+
+   //--------------------------------------------------------------------------------------------------------------------------
+
     // --- ENEMIES ---
     this.enemies = this.physics.add.group({
       classType: Enemy,
@@ -144,10 +173,22 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
       enemy.explode();
     }, null, this);
+    
+    // Damage player if hit by enemy explosion
+    this.player.on('hitByEnemy', () => {
+      this.player.health -= 30; // damage value
+      if (this.player.health < 0) this.player.health = 0;
 
-    // Spawn enemies every 3 seconds from right edges
+      this.updateHealthBar();
+
+      if (this.player.health === 0) {
+        console.log("Player died!"); // game over
+      }
+    });
+
+    // Spawn enemies every 4 seconds from right edges
     this.time.addEvent({
-  delay: 8000,
+  delay: 4000,
   loop: true,
   callback: () => {
     const cam = this.cameras.main;
@@ -171,8 +212,8 @@ export default class GameScene extends Phaser.Scene {
     
     let vignette = this.add.image(800, 279, 'vignette');
     vignette.setScrollFactor(0); // stays fixed on screen
-    vignette.setDepth(999);      // always on top
-    vignette.setAlpha(0.5);      // tweak intensity   
+    vignette.setDepth(100);      // always on top
+    vignette.setAlpha(2.5);      // tweak intensity   
 
 
 
@@ -224,18 +265,20 @@ export default class GameScene extends Phaser.Scene {
       else this.pod.idle();
   }
 
-    
      if (this.player.anims.currentAnim) {
     if (this.player.anims.currentAnim.key === 'player-idle') {
       this.player.setScale(1.1); 
     } else if (this.player.anims.currentAnim.key === 'player-walk') {
       this.player.setScale(1.2); 
     }
+    this.updateHealthBar();
   }
   // Parallax effect (slower scroll than main camera)
   this.bgLayer2.setScrollFactor(1.6); 
   this.wires.setScrollFactor(1.3);     
 
-  this.pod.update();  
+  this.pod.update(); 
+  
+ 
   }
 }

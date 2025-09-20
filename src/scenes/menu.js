@@ -4,6 +4,9 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   preload() {
+    //prelaod bgm
+    this.load.audio('bgm', 'audio/bgm/nexttoyou.mp3');
+
     // Load background + buttons
     this.load.image("MenuBG", "src/ui/MenuBgmain-Sheet.png"); 
 
@@ -21,6 +24,15 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   create() {
+    // Music 
+    this.bgm = this.sound.add('bgm', {
+        volume: 0.5,   // 0.0 to 1.0
+        loop: true      // keep it looping
+    });
+
+    // Play 
+    this.bgm.play();
+
     // Add background (
     this.add.image(400, 300, "MenuBG").setOrigin(0.5).setDisplaySize(800, 600);
 
@@ -36,7 +48,13 @@ export default class MenuScene extends Phaser.Scene {
     };
 
     // Create buttons (on the left side)
-    makeButton(185, 250, "PlayBtn", "PlayBtnHover", () => this.scene.start('BootScene'));
+    makeButton(185, 250, "PlayBtn", "PlayBtnHover", () => {
+      // fade out the camera
+      this.cameras.main.fadeOut(500, 0, 0, 0); // 500ms fade, black
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('InstructionScene');
+      });
+    });
     makeButton(185, 300, "SettingsBtn", "SettingsBtnHover", () => console.log("Settings clicked"));
     makeButton(185, 350, "ExitBtn", "ExitBtnHover", () => console.log("Exit clicked"));
   }

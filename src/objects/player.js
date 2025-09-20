@@ -5,17 +5,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Add to scene
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    
+
+       //VERY IMPORTANT
+    Phaser.Events.EventEmitter.call(this); 
 
     this.setScale(1.2).setCollideWorldBounds(true);
     this.setOrigin(0.5,1);
 
    // player hitbox 
     this.setSize(40, 40);      // collision box size
-    this.setOffset(40, 80);  // shift collision box inside sprite
+    this.setOffset(40, 90);  // shift collision box inside sprite
 
     this.health = 140;
-    this.maxHealth = 100;
+    this.maxHealth = 140;
 
     // Animations
     scene.anims.create({
@@ -31,6 +33,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       frameRate: 10,
       repeat: -1
     });
+       
 
     // slash animation
     scene.anims.create({
@@ -76,10 +79,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         slash.play('player-slash');
         slash.flipX = this.flipX;
         slash.setOrigin(0.5, 0.89);
-        //SCALE
-        slash.setScale(1.11)
+        // SCALE
+        slash.setScale(1.11);
 
-          // Enable physics on the slash so it can detect enemies
+        // Enable physics on the slash so it can detect enemies
         this.scene.physics.add.existing(slash);
         slash.body.setSize(slash.width, slash.height); // match hitbox to sprite
         slash.body.allowGravity = false;
@@ -87,8 +90,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         // Overlap check with enemies
         let overlapCollider = this.scene.physics.add.overlap(slash, this.scene.enemies, (slashObj, enemy) => {
             enemy.die(); // trigger enemy death
+            this.scene.cameras.main.shake(100, 0.001); // 100ms duration, small shake
         });
-
 
         // destroy slash and show player again
         slash.on('animationcomplete', () => {
@@ -98,6 +101,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         });
     } 
 }
+
+
 
 
 }

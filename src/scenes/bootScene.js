@@ -81,7 +81,7 @@ export default class BootScene extends Phaser.Scene {
         this.tweens.add({
           targets: fadeRect,
           alpha: 1,
-          duration: 1000, // fade duration
+          duration: 500, // fade duration
           onComplete: () => {
             this.scene.start('GameScene'); // switch scene after fade
           }

@@ -61,23 +61,30 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  preUpdate(time, delta) {
+ preUpdate(time, delta) {
     super.preUpdate(time, delta);
     if (this.isDead) return;
 
     if (this.state === 'walk') {
-      // Move toward player
-      this.scene.physics.moveToObject(this, this.player, this.speed);
+        // Apply  tint 
+        this.setTint(0x999999); // light gray, slightly darkens the sprite
 
-      // Face player
-      this.flipX = this.body.velocity.x > 0;
+        // Move toward player
+        this.scene.physics.moveToObject(this, this.player, this.speed);
 
-      const dist = Phaser.Math.Distance.Between(this.x, this.y, this.player.x, this.player.y);
-      if (dist < this.explodeRange) {
-        this.explode();
-      }
+        // Face player
+        this.flipX = this.body.velocity.x > 0;
+
+        const dist = Phaser.Math.Distance.Between(this.x, this.y, this.player.x, this.player.y);
+        if (dist < this.explodeRange) {
+            this.explode();
+        }
+    } else {
+        // Remove tint 
+        this.clearTint();
     }
-  }
+}
+
 
   explode() {
     if (this.isDead) return;
@@ -88,6 +95,13 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setScale(this.explodeScale); // scale explode sprite
     this.y = 433;                      
     this.play('enemy-explode');
+    
+    // Offset explosion a bit in front of enemy (to give visual effect)
+    const offsetX = this.flipX ? 37 : -37; // adjust 
+    this.x += offsetX;
+    
+      // Camera shake
+    this.scene.cameras.main.shake(250, 0.01); // 200ms duration, 0.01 intensity
 
     // Damage player
     this.player.emit('hitByEnemy');

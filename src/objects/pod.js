@@ -104,6 +104,13 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
 
                 //  stop glow when stopped firing
                 bullet.on('destroy', () => glow.destroy()); */
+           // Collision with enemies
+                scene.physics.add.overlap(bullet, scene.enemies, (b, enemy) => {
+                    if (!enemy.isDead) {
+                        enemy.die();       // trigger enemy death
+                        b.destroy();       // remove bullet
+                    }
+                }, null, scene);
         }
       },
       loop: true

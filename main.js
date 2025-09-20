@@ -2,6 +2,7 @@
 import BootScene from "./src/scenes/bootScene.js";
 import MenuScene from "./src/scenes/menu.js";
 import GameScene from "./src/scenes/levelscene.js";
+import InstructionScene from "./src/scenes/instructionScene.js";
 
 const config = {
     type: Phaser.AUTO,// phasor will uses webgl or canvas api
@@ -18,7 +19,7 @@ const config = {
         default: 'arcade' ,
          arcade: {
         gravity: { y: 500 },
-        debug: true
+        debug: false
     }   
     },
     
@@ -26,8 +27,8 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    // scene: [MenuScene,BootScene,GameScene] 
-     scene: [GameScene] 
+    scene: [MenuScene,InstructionScene,BootScene,GameScene] 
+    //scene: [GameScene] 
 };
 
 new Phaser.Game(config);
