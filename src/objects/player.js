@@ -84,7 +84,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
         // Enable physics on the slash so it can detect enemies
         this.scene.physics.add.existing(slash);
-        slash.body.setSize(slash.width-30, slash.height); // match hitbox to sprite
+        slash.body.setSize(slash.width, slash.height); // match hitbox to sprite
         slash.body.allowGravity = false;
 
         // Overlap check with enemies
