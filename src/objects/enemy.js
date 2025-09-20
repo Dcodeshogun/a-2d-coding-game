@@ -18,6 +18,9 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setScale(this.walkScale); 
     this.y = 433;                  // place on ground
     this.body.setAllowGravity(false); // prevent falling
+    // Shrink hitbox to fit visible sprite
+    this.body.setSize(15, 60);   // width, height of actual visible part
+    this.body.setOffset(25, 5);  // shift hitbox inside the sprite (x, y)
 
 
     this.speed = 180

@@ -26,7 +26,7 @@ this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'ui').play('instruc
 
     // Click anywhere to continue
     this.input.on('pointerdown', () => {
-      this.scene.start('GameScene'); 
+      this.scene.start('BootScene'); 
     });
   }
 }

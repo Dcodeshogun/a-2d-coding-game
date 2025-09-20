@@ -62,7 +62,7 @@ export default class BootScene extends Phaser.Scene {
           if (charIndex < fullLine.length) {
             lineText.setText(lineText.text + fullLine[charIndex]);
             charIndex++;
-            this.time.delayedCall(10, typeChar); // speed of letters
+            this.time.delayedCall(30, typeChar); // speed of letters
           } else {
             y += 20; // move to next line
             i++;
