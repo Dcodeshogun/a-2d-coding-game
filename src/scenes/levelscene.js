@@ -54,6 +54,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.fadeIn(600, 0, 0, 0); // 500ms fade from black
    /// Fade out MenuScene BGM when starting levelscene
     const menuScene = this.scene.get('MenuScene');
     if (menuScene && menuScene.bgm) {
