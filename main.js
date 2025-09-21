@@ -30,8 +30,8 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    scene: [MenuScene,LangScene,QuizScene,InstructionScene,BootScene,GameScene] 
-    //scene: [GameScene] 
+    //scene: [MenuScene,LangScene,QuizScene,InstructionScene,BootScene,GameScene] 
+    scene: [GameScene] 
     //scene: [QuizScene] 
      
 };

@@ -11,6 +11,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
+
+    this.load.audio('pod-fire', 'audio/sfx/pod-engage.mp3');
+
     this.load.spritesheet('background', 'assets/mainbg-Sheet.png', {
       frameWidth: 1600, frameHeight: 558
     });

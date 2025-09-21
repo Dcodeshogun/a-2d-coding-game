@@ -10,7 +10,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.offsetY = -90;          // vertical offset
     this.lerpFactor = 0.05;      // smooth follow
     this.state = 'idle';          // current pod state: idle, walk, engage, fire
-
+    this.podFireSfx = this.scene.sound.add('pod-fire');
     this.setScale(3).setCollideWorldBounds(true);
 
     this.createAnimations(scene);
@@ -59,11 +59,14 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.engage();
     this.once('animationcomplete-pod-engage', () => {
       this.fire();
+      this.scene.sound.play('pod-fire', { volume: 0.45 });
       this.startFiring(scene);
 
-      // Stop firing after 4seconds and return to idle
-      scene.time.delayedCall(4000, () => {
+      // Stop firing after 5.4seconds and return to idle
+      scene.time.delayedCall(5400, () => {
+        
         this.stopFiring();
+        this.podFireSfx.stop();
         this.idle();               
       });
     });
