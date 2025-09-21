@@ -37,7 +37,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
       scene.anims.create({
         key: 'punch-enemy-idle',
         frames: scene.anims.generateFrameNumbers('punch-enemy', { start: 7, end: 9 }),
-        frameRate: 9,
+        frameRate: 6,
         repeat: -1
       });
     }
@@ -104,16 +104,26 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     if (this.body.blocked.right) this.patrolDirection = -1;
     if (this.body.blocked.left) this.patrolDirection = 1;
 
-    // Switch to glare/chase if in cam
+    // Switch to glare when inside camera view
     if (this.scene.cameras.main.worldView.contains(this.x, this.y)) {
-        this.state = 'glare';
-        this.setVelocity(0, 0);
-        this.play('punch-enemy-glare');
-        this.once('animationcomplete', () => {
-            this.state = 'chase';
-            this.play('punch-enemy-walk');
-        });
+      this.state = 'glare';
+      this.setVelocity(0, 0);
+      this.play({
+        key: 'punch-enemy-idle',
+        repeat: 2 // plays twice total
+      });
     }
+    break;
+
+  case 'glare':
+    // Wait for idle to finish, then glare, then chase
+    this.once('animationcomplete-punch-enemy-idle', () => {
+      this.play('punch-enemy-glare');
+      this.once('animationcomplete-punch-enemy-glare', () => {
+        this.state = 'chase';
+        this.play('punch-enemy-walk');
+      });
+    });
     break;
 
       case 'chase':

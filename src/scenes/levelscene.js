@@ -178,6 +178,15 @@ this.updateHealthBar();
       classType: PunchEnemy,
       runChildUpdate: true
     });
+    
+
+      // Spawn a single PunchEnemy at start
+      const startX = 1200; // X position where you want it to appear
+      const startY = 433;  // Y position (ground level)
+      this.firstPunchEnemy = new PunchEnemy(this, startX, startY, this.player);
+      this.punchEnemies.add(this.firstPunchEnemy);
+      this.physics.add.collider(this.firstPunchEnemy, this.ground);
+
 
     // Player–enemy overlap (explode when they touch)
     this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
