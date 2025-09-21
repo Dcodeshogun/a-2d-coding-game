@@ -16,8 +16,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setSize(40, 40);      // collision box size
     this.setOffset(40, 90);  // shift collision box inside sprite
 
-    this.health = 140;
-    this.maxHealth = 140;
+    this.health = 200;
+    this.maxHealth = 200;
+    //call flash on hit
+      this.on('hitByEnemy', () => {
+      this.health -= 5;   // adjust damage
+      this.flashWhite();   // <- call flash
+    });
 
     // Animations
     scene.anims.create({
@@ -39,7 +44,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.anims.create({
       key: 'player-slash',
       frames: scene.anims.generateFrameNumbers('slash', { start: 0, end: 7 }),
-      frameRate: 16,
+      frameRate: 12,
       repeat: 0
     });
 
@@ -92,7 +97,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             enemy.die(); // trigger enemy death
             this.scene.cameras.main.shake(100, 0.001); // 100ms duration, small shake
         });
-
+        // Overlap with PunchEnemies
+        let overlapCollider1 = this.scene.physics.add.overlap(
+            slash,
+            this.scene.punchEnemies,
+            (slashObj, enemy) => {
+                enemy.takeDamage(30);       // damage value
+                this.scene.cameras.main.shake(100, 0.001); // small shake
+                this.scene.physics.world.removeCollider(overlapCollider1);
+            }
+        );
         // destroy slash and show player again
         slash.on('animationcomplete', () => {
             slash.destroy();
@@ -101,10 +115,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         });
     } 
 }
+//take Damage
+flashWhite() {
+  if (this.flashTween) {
+    this.flashTween.remove(); // stop ongoing flash
+  }
 
-
-
-
+  this.flashTween = this.scene.tweens.add({
+    targets: this,
+    alpha: { from: 1, to: 0 }, // blink invisible
+    ease: 'Linear',
+    duration: 80,              // ms
+    yoyo: true,                // fade back in
+    repeat: 2,                 // blink count
+    onComplete: () => {
+      this.alpha = 1;          // reset
+      this.flashTween = null;
+    }
+  });
 }
-  
+}  
 

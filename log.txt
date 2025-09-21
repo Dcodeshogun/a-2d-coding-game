@@ -6,8 +6,8 @@ pending urgent shit:
 player:
 health bars/
 slash attack/
-death anim(falls on knees)
-damage anime
+death anim(falls on knees)----------
+damage anime-----------
 
 
 pod://

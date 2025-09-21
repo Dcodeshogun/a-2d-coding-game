@@ -23,7 +23,7 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.body.setOffset(25, 5);  // shift hitbox inside the sprite (x, y)
 
 
-    this.speed = 180
+    this.speed = 230
     this.explodeRange = 5;
     this.isDead = false;
     this.state = 'walk'; // 'walk', 'explode', 'dead'

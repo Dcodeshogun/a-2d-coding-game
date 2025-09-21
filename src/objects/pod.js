@@ -85,7 +85,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
           bullet.setVelocityX(this.flipX ? -900 : 900);
           bullet.setX(this.x + (this.flipX ? -50 : 50));
           bullet.setY(this.y);
-          bullet.setScale(2.8);
+          bullet.setScale(3);
 
          /* //  Add yellow glow effect
                 let glow = scene.add.image(bullet.x, bullet.y, 'bullet')
@@ -104,6 +104,15 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
 
                 //  stop glow when stopped firing
                 bullet.on('destroy', () => glow.destroy()); */
+          // Collision with PunchEnemies
+             scene.physics.add.overlap(bullet, scene.punchEnemies, (b, enemy) => {
+                enemy.takeDamage(5);              // Pod bullet does 3 damage
+                b.destroy();              // destroy bullet on hit
+            });
+
+
+
+
            // Collision with enemies
                 scene.physics.add.overlap(bullet, scene.enemies, (b, enemy) => {
                     if (!enemy.isDead) {

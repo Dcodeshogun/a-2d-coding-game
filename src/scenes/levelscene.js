@@ -1,6 +1,7 @@
 import {Player} from '../objects/player.js';
 import {Pod} from '../objects/pod.js';
 import {Enemy} from '../objects/enemy.js';
+import {PunchEnemy} from '../objects/enemy2.js';
 
 
 
@@ -47,6 +48,10 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('suicide-enemy-walk', "assets/suicide machine walk-Sheet.png", { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('suicide-enemy-explode', "assets/suicidemachine(explosion)-Sheet.png", { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('suicide-enemy-death', "assets/suicidemachineDEATH-Sheet.png", { frameWidth: 84, frameHeight: 64 });
+    this.load.spritesheet('punch-enemy', 'assets/machine(S)-Sheet.png', {
+    frameWidth: 190,
+    frameHeight: 128
+});
 
 
     this.load.image('vignette', 'assets/vignette-rect.png');
@@ -169,6 +174,10 @@ this.updateHealthBar();
       classType: Enemy,
       runChildUpdate: true
     });
+    this.punchEnemies = this.physics.add.group({
+      classType: PunchEnemy,
+      runChildUpdate: true
+    });
 
     // Player–enemy overlap (explode when they touch)
     this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
@@ -186,25 +195,57 @@ this.updateHealthBar();
         console.log("Player died!"); // game over
       }
     });
+    //punch enemy
+    this.player.on('hitByEnemy', (damage = 15) => { // default 15
+    this.player.health -= damage;
+    if (this.player.health < 0) this.player.health = 0;
+    this.updateHealthBar();
+    if (this.player.health === 0) {
+        console.log("Player died!");
+     }
+   }); 
+    // Player attack vs PunchEnemy
+    this.physics.add.overlap(this.player, this.punchEnemies, (player, punchEnemy) => {
+        if (player.isAttacking) {
+            punchEnemy.takeDamage(25); // heavy attack
+        }
+    }, null, this);
+
 
     // Spawn enemies every 4 seconds from right edges
     this.time.addEvent({
-  delay: 4000,
-  loop: true,
-  callback: () => {
-    const cam = this.cameras.main;
-    const x = cam.worldView.x + cam.width + 50; // right edge
-    const y = 433; // ground level
+      delay: 4000,
+      loop: true,
+      callback: () => {
+        const cam = this.cameras.main;
+        const x = cam.worldView.x + cam.width + 50; // right edge
+        const y = 433; // ground level
 
-    let enemy = new Enemy(this, x, y, this.player);
-    this.enemies.add(enemy);
+        let enemy = new Enemy(this, x, y, this.player);
+        this.enemies.add(enemy);
 
-    // Ensure enemy collides with ground
-    this.physics.add.collider(enemy, this.ground);
-  }
-});
+        // Ensure enemy collides with ground
+        this.physics.add.collider(enemy, this.ground);
+      }
+    });
+  //Spawn enemy2 every 7 sec
+   this.time.addEvent({
+    delay: 7000, // spawn every 7 seconds
+    loop: true,
+    callback: () => {
+        const cam = this.cameras.main;
+        const x = cam.worldView.x + cam.width + Phaser.Math.Between(25, 400); // right side, random offset
+        const y = 433; // ground
 
-    
+        let punchEnemy = new PunchEnemy(this, x, y, this.player);
+        this.punchEnemies.add(punchEnemy);
+
+        this.physics.add.collider(punchEnemy, this.ground);
+      }
+  });
+   
+
+
     
     this.setupPlayerMovement();
 
