@@ -154,8 +154,8 @@ this.updateHealthBar = () => {
 
     // Determine color based on health
     let color = 0xc8c3ad; // full health
-    if (healthPercent < 0.5) color = 0xaca793; // medium health
-    if (healthPercent < 0.25) color = 0xff0000; // low health (red)
+    if (healthPercent < 0.6) color = 0xaca793; // medium health
+    if (healthPercent < 0.3) color = 0x52514c; // low health (red)
 
     // Draw foreground
     this.healthBarFg.clear();

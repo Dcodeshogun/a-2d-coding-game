@@ -1,6 +1,6 @@
 export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, player) {
-    super(scene, x, y, 'punch-enemy-idle'); // your idle sprite
+    super(scene, x, y, 'punch-enemy-idle'); // idle sprite
     
     this.maxHealth = 90;     // max health
     this.health = this.maxHealth;
@@ -16,8 +16,8 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     this.setOrigin(0.5, 1);
     this.setScale(2);
     this.body.setAllowGravity(true);
-    this.body.setSize(30 , 70);    // adjust to actual visible sprite
-    this.body.setOffset(100, 50);   // tweak so sprite sits on ground
+    this.body.setSize(30 , 70);    
+    this.body.setOffset(100, 50);   
 
     this.speed = 120;
     this.attackRange = 50;
@@ -27,6 +27,13 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
 
     this.isDead = false;
     this.state = 'idle';
+
+    // Floating health bar
+    this.healthBarBg = this.scene.add.graphics();
+    this.healthBarFg = this.scene.add.graphics();
+    this.healthBarWidth = 65;  // width of bar
+    this.healthBarHeight = 5;  // height of bar
+
 
     this.createAnimations(scene);
     this.play('punch-enemy-idle');
@@ -110,13 +117,13 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
       this.setVelocity(0, 0);
       this.play({
         key: 'punch-enemy-idle',
-        repeat: 2 // plays twice total
+        repeat: 1 // plays twice total
       });
     }
     break;
 
   case 'glare':
-    // Wait for idle to finish, then glare, then chase
+    // idle , then glare, then chase
     this.once('animationcomplete-punch-enemy-idle', () => {
       this.play('punch-enemy-glare');
       this.once('animationcomplete-punch-enemy-glare', () => {
@@ -135,7 +142,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
         this.state = 'punch';
         this.setVelocity(0, 0);
 
-        // randomly pick heavy (40%) or light (60%)
+        // random pick heavy 40% or light 60%
         if (Math.random() < 0.4) {  
             this.play('punch-enemy-punch2');
             this.scene.cameras.main.shake(150, 0.01); // heavy punch impact
@@ -156,12 +163,14 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     }
     break;
     }
+    this.updateHealthBar();
+
   }
 
   takeDamage(amount) {
     if (this.isDead) return;    // ignore if already dead
     this.health -= amount;
-
+    this.updateHealthBar();
     if (this.health <= 0) {
         this.health = 0;
         this.die();              // automatically die if health is 0
@@ -180,6 +189,35 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     this.isDead = true;
     this.setVelocity(0, 0);
     this.play('punch-enemy-death');
+
+
+    this.body.enable = false;
+
+     // remove health bar 
+    if (this.healthBarBg) this.healthBarBg.destroy();
+    if (this.healthBar) this.healthBar.destroy();
     this.once('animationcomplete', () => this.destroy());
   }
+  updateHealthBar() {
+    // bar above enemy
+    const x = this.x - this.healthBarWidth /14;
+    const y = this.y - this.body.height - 26;
+
+    // Background
+    this.healthBarBg.clear();
+    this.healthBarBg.fillStyle(0x575349, 1);
+    this.healthBarBg.fillRect(x, y, this.healthBarWidth, this.healthBarHeight);
+
+    // Foreground (health)
+    this.healthBarFg.clear();
+    let healthPercent = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
+    let color = 0xc8c3ad;
+    if (healthPercent < 0.5) color = 0xaca793;
+    if (healthPercent < 0.25) color = 0xff0000;
+
+    this.healthBarFg.fillStyle(color, 1);
+    this.healthBarFg.fillRect(x, y, this.healthBarWidth * healthPercent, this.healthBarHeight);
 }
+
+}
+

@@ -57,7 +57,7 @@ export default class LangScene extends Phaser.Scene {
       // fade out 
       this.cameras.main.fadeOut(200, 0, 0, 0); // 500ms fade, black
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('InstructionScene');
+        this.scene.start('QuizScene');
       });
     });
     //makeButton(185, 300, "SettingsBtn", "SettingsBtnHover", () => console.log("Settings clicked"));

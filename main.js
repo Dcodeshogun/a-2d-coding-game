@@ -4,6 +4,7 @@ import MenuScene from "./src/scenes/menu.js";
 import GameScene from "./src/scenes/levelscene.js";
 import InstructionScene from "./src/scenes/instructionScene.js";
 import LangScene from "./src/scenes/langselect.js";
+import QuizScene from "./src/scenes/quizscene.js";
 
 
 const config = {
@@ -29,7 +30,9 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    scene: [MenuScene,LangScene,InstructionScene,BootScene,GameScene] 
+    scene: [MenuScene,LangScene,QuizScene,InstructionScene,BootScene,GameScene] 
+    //scene: [GameScene] 
+    //scene: [QuizScene] 
      
 };
 

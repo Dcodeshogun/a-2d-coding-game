@@ -16003,7 +16003,7 @@ var Config = new Class({
         /**
          * @const {?boolean} Phaser.Core.Config#domCreateContainer - Should the game create a div element to act as a DOM Container? Only enable if you're using DOM Element objects. You must provide a parent object if you use this feature.
          */
-        this.domCreateContainer = GetValue(config, 'dom.createContainer', false);
+        this.domCreateContainer = GetValue(config, 'dom.createContainer', true);
 
         /**
          * @const {?string} Phaser.Core.Config#domPointerEvents - The default `pointerEvents` attribute set on the DOM Container.

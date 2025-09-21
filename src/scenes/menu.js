@@ -5,7 +5,7 @@ export default class MenuScene extends Phaser.Scene {
 
   preload() {
     //prelaod bgm
-    this.load.audio('bgm', 'audio/bgm/cityruins.mp3');
+    this.load.audio('bgm', 'audio/bgm/cityruins-guitar.mp3');
 
     // Load background + buttons
     this.load.image("MenuBG", "src/ui/MenuBgmain-Sheet.png"); 
@@ -26,7 +26,7 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     // Music 
     this.bgm = this.sound.add('bgm', {
-        volume: 0.3,   // 0.0 to 1.0
+        volume: 0.28,   // 0.0 to 1.0
         loop: true      // keep it looping
     });
 

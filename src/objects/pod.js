@@ -61,8 +61,8 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
       this.fire();
       this.startFiring(scene);
 
-      // Stop firing after 7seconds and return to idle
-      scene.time.delayedCall(7000, () => {
+      // Stop firing after 4seconds and return to idle
+      scene.time.delayedCall(4000, () => {
         this.stopFiring();
         this.idle();               
       });
