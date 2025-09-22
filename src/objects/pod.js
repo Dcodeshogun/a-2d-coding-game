@@ -86,7 +86,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
           bullet.body.enable = true;
           bullet.body.allowGravity = false;   
           bullet.setVelocityX(this.flipX ? -900 : 900);
-          bullet.setX(this.x + (this.flipX ? -50 : 50));
+          bullet.setX(this.x + (this.flipX ? -50 : 50)-40);
           bullet.setY(this.y);
           bullet.setScale(3);
 
@@ -107,10 +107,18 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
 
                 //  stop glow when stopped firing
                 bullet.on('destroy', () => glow.destroy()); */
+
+
           // Collision with PunchEnemies
              scene.physics.add.overlap(bullet, scene.punchEnemies, (b, enemy) => {
-                enemy.takeDamage(5);              // Pod bullet does 3 damage
-                b.destroy();              // destroy bullet on hit
+             enemy.takeDamage(5);              // Pod bullet does 3 damage
+            b.destroy();              // destroy bullet on hit
+                
+          // spark effect at impact
+              const spark = scene.add.sprite((b.x) +145, b.y+40, 'spark');
+              spark.setScale(0.98);
+              spark.play('spark-anim');
+              spark.once('animationcomplete', () => spark.destroy()); // auto cleanup
             });
 
 
@@ -120,7 +128,12 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
                 scene.physics.add.overlap(bullet, scene.enemies, (b, enemy) => {
                     if (!enemy.isDead) {
                         enemy.die();       // trigger enemy death
-                        b.destroy();       // remove bullet
+                        b.destroy();       // remove bullet 
+                const spark = scene.add.sprite((b.x) +150, b.y+40, 'spark');
+              spark.setScale(0.7);
+              spark.play('spark-anim');
+              spark.once('animationcomplete', () => spark.destroy()); // auto cleanup 
+                  
                     }
                 }, null, scene);
         }

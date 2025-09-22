@@ -54,7 +54,11 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('punch-enemy', 'assets/machine(S)-Sheet.png', {
     frameWidth: 190,
     frameHeight: 128
-});
+    });
+    this.load.spritesheet('spark', 'assets/sparksbursts.png',{frameWidth: 256,
+    frameHeight: 256}); 
+
+
 
 
     this.load.image('vignette', 'assets/vignette-rect.png');
@@ -255,7 +259,13 @@ this.updateHealthBar();
         this.physics.add.collider(punchEnemy, this.ground);
       }
   });
-   
+      this.anims.create({
+      key: 'spark-anim',
+      frames: this.anims.generateFrameNumbers('spark', { start: 0, end: 53 }), // adjust frames
+      frameRate: 58,
+      repeat: 0
+    });
+
 
 
     
