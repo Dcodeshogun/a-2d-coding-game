@@ -5,7 +5,7 @@ export default class MenuScene extends Phaser.Scene {
 
   preload() {
     //prelaod bgm
-    this.load.audio('bgm', 'audio/bgm/cityruins-guitar.mp3');
+    this.load.audio('bgm', 'audio/bgm/cityruins.mp3');
 
     // Load background + buttons
     this.load.image("MenuBG", "src/ui/MenuBgmain-Sheet.png"); 

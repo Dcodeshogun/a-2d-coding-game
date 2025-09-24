@@ -4,6 +4,15 @@ export default class BootScene extends Phaser.Scene {
   }
 
   create() {
+    const menuScene = this.scene.get('MenuScene');
+    if (menuScene && menuScene.bgm) {
+        this.tweens.add({
+            targets: menuScene.bgm,
+            volume: 0,          // fade to 0
+            duration: 500,     // 1 second fade
+            onComplete: () => menuScene.bgm.stop()
+        });
+    }
     // Background
     this.cameras.main.setBackgroundColor('#000000');
     
@@ -81,7 +90,7 @@ export default class BootScene extends Phaser.Scene {
         this.tweens.add({
           targets: fadeRect,
           alpha: 1,
-          duration: 500, // fade duration
+          duration: 1000, // fade duration
           onComplete: () => {
             this.scene.start('GameScene'); // switch scene after fade
           }

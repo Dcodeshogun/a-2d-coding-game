@@ -33,6 +33,11 @@ export default class GameScene extends Phaser.Scene {
       frameWidth: 128, frameHeight: 128
     });
 
+    this.load.spritesheet('player-death', 'assets/2B-death.png', {
+      frameWidth: 128, frameHeight: 128
+    });
+
+
     // slash attack
     this.load.spritesheet('slash', 'assets/2B_slash.png', {
       frameWidth: 256, frameHeight: 159
@@ -67,16 +72,8 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.fadeIn(600, 0, 0, 0); // 500ms fade from black
-   /// Fade out MenuScene BGM when starting levelscene
-    const menuScene = this.scene.get('MenuScene');
-    if (menuScene && menuScene.bgm) {
-        this.tweens.add({
-            targets: menuScene.bgm,
-            volume: 0,          // fade to 0
-            duration: 1000,     // 1 second fade
-            onComplete: () => menuScene.bgm.stop()
-        });
-    }
+   
+  
 
 
   // GROUND
@@ -162,7 +159,7 @@ this.updateHealthBar = () => {
     // Determine color based on health
     let color = 0xc8c3ad; // full health
     if (healthPercent < 0.6) color = 0xaca793; // medium health
-    if (healthPercent < 0.3) color = 0x52514c; // low health (red)
+    if (healthPercent < 0.3) color = 0x967C66; // low health (red)
 
     // Draw foreground
     this.healthBarFg.clear();
@@ -199,27 +196,22 @@ this.updateHealthBar();
     this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
       enemy.explode();
     }, null, this);
-    
-    // Damage player if hit by enemy explosion
-    this.player.on('hitByEnemy', () => {
-      this.player.health -= 30; // damage value
-      if (this.player.health < 0) this.player.health = 0;
+    //damage and death
+    this.player.on('hitByEnemy', (damage = 30) => { // default 30 damage
+    if (this.player.isDead) return; 
 
-      this.updateHealthBar();
-
-      if (this.player.health === 0) {
-        console.log("Player died!"); // game over
-      }
-    });
-    //punch enemy
-    this.player.on('hitByEnemy', (damage = 15) => { // default 15
     this.player.health -= damage;
-    if (this.player.health < 0) this.player.health = 0;
+
+    // Clamp health to 0
+    if (this.player.health <= 0) {
+        this.player.health = 0;
+        this.player.die();  // call die 
+    }
+
     this.updateHealthBar();
-    if (this.player.health === 0) {
-        console.log("Player died!");
-     }
-   }); 
+});
+
+
     // Player attack vs PunchEnemy
     this.physics.add.overlap(this.player, this.punchEnemies, (player, punchEnemy) => {
         if (player.isAttacking) {
@@ -295,6 +287,15 @@ this.updateHealthBar();
   }
 
   update() {
+          if (this.player.anims.currentAnim) {
+          if (this.player.anims.currentAnim.key === 'player-idle') {
+            this.player.setScale(1.1); 
+          } else if (this.player.anims.currentAnim.key === 'player-walk') {
+            this.player.setScale(1.2); 
+          }
+          this.updateHealthBar();
+        }
+        if (this.player.isDead) return;
         this.player.setVelocityX(0);
 
     let moving = false;
@@ -329,14 +330,7 @@ this.updateHealthBar();
       else this.pod.idle();
   }
 
-     if (this.player.anims.currentAnim) {
-    if (this.player.anims.currentAnim.key === 'player-idle') {
-      this.player.setScale(1.1); 
-    } else if (this.player.anims.currentAnim.key === 'player-walk') {
-      this.player.setScale(1.2); 
-    }
-    this.updateHealthBar();
-  }
+     
   // Parallax effect (slower scroll than main camera)
   this.bgLayer2.setScrollFactor(1.6); 
   this.wires.setScrollFactor(1.3);     

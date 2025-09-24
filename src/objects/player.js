@@ -20,8 +20,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.maxHealth = 200;
     //call flash on hit
       this.on('hitByEnemy', () => {
-      this.health -= 5;   // adjust damage
+      if (this.isDead) return;  
+      this.health -= 1;   // adjust damage
       this.flashWhite();   // <- call flash
+
+      if (this.health <= 0) {
+        this.health = 0;
+        this.die(); // death animation
+    }
     });
 
     // Animations
@@ -47,6 +53,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       frameRate: 12,
       repeat: 0
     });
+   // death anim
+    scene.anims.create({
+      key: 'player-death',
+      frames: scene.anims.generateFrameNumbers('player-death', { start: 0, end: 15 }), // adjust to your sheet
+      frameRate: 8,
+      repeat: 0
+    });
+
 
     this.play('player-idle');
 
@@ -117,6 +131,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 }
 //take Damage
 flashWhite() {
+  if (this.isDead) return;
   if (this.flashTween) {
     this.flashTween.remove(); // stop ongoing flash
   }
@@ -134,5 +149,22 @@ flashWhite() {
     }
   });
 }
+  die() {
+    if (this.isDead) return;
+    this.isDead = true;
+
+    this.setVelocity(0, 0);
+    this.body.enable = false; // disable physics
+
+    this.play('player-death');
+
+    // after animation, restart scene
+    this.once('animationcomplete', () => {
+      this.scene.time.delayedCall(2700, () => {
+        this.scene.scene.start('GameScene'); // or restart GameScene
+      });
+    });
+  }
+
 }  
 

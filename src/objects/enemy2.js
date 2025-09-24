@@ -2,7 +2,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, player) {
     super(scene, x, y, 'punch-enemy-idle'); // idle sprite
     
-    this.maxHealth = 90;     // max health
+    this.maxHealth = 100;     // max health
     this.health = this.maxHealth;
     
     this.scene = scene;
@@ -22,8 +22,8 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     this.speed = 120;
     this.attackRange = 50;
     this.lightPunchRange = 30;  // distance for light punch
-    this.lightPunchDamage = 10;
-    this.heavyPunchDamage = 25;
+    this.lightPunchDamage = 20;
+    this.heavyPunchDamage = 30;
 
     this.isDead = false;
     this.state = 'idle';

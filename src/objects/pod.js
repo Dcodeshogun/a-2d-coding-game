@@ -8,7 +8,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.player = player;        // reference to player
     this.offsetX = 50;           // hover distance
     this.offsetY = -90;          // vertical offset
-    this.lerpFactor = 0.05;      // smooth follow
+    this.lerpFactor = 0.07;      // smooth follow
     this.state = 'idle';          // current pod state: idle, walk, engage, fire
     this.podFireSfx = this.scene.sound.add('pod-fire');
     this.setScale(3).setCollideWorldBounds(true);
@@ -60,6 +60,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.once('animationcomplete-pod-engage', () => {
       this.fire();
       this.scene.sound.play('pod-fire', { volume: 0.45 });
+       if (this.isDead) return;
       this.startFiring(scene);
 
       // Stop firing after 5.4seconds and return to idle
@@ -111,7 +112,7 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
 
           // Collision with PunchEnemies
              scene.physics.add.overlap(bullet, scene.punchEnemies, (b, enemy) => {
-             enemy.takeDamage(5);              // Pod bullet does 3 damage
+             enemy.takeDamage(3.8);              // Pod bullet does 4 damage
             b.destroy();              // destroy bullet on hit
                 
           // spark effect at impact
