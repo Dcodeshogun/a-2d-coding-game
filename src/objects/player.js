@@ -57,7 +57,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.anims.create({
       key: 'player-death',
       frames: scene.anims.generateFrameNumbers('player-death', { start: 0, end: 15 }), // adjust to your sheet
-      frameRate: 8,
+      frameRate: 7,
       repeat: 0
     });
 

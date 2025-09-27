@@ -154,7 +154,7 @@ this.updateHealthBar = () => {
     let targetWidth = healthPercent * barWidth;
 
     // Smoothly interpolate width
-    this.currentBarWidth = Phaser.Math.Linear(this.currentBarWidth, targetWidth, 0.1); // 0.1 = speed factor
+    this.currentBarWidth = Phaser.Math.Linear(this.currentBarWidth, targetWidth, 0.3); // 0.1 = speed factor
 
     // Determine color based on health
     let color = 0xc8c3ad; // full health
@@ -301,12 +301,12 @@ this.updateHealthBar();
     let moving = false;
   if (!this.player.isAttacking) {
     if (this.cursors.left.isDown || this.wasd.A.isDown) {
-        this.player.setVelocityX(-250);
+        this.player.setVelocityX(-280);
         this.player.play('player-walk', true);
         this.player.flipX = true;
         moving = true;
     } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
-        this.player.setVelocityX(250);
+        this.player.setVelocityX(280);
         this.player.play('player-walk', true);
         this.player.flipX = false;
         moving = true;

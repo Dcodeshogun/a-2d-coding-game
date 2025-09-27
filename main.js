@@ -16,7 +16,7 @@ const config = {
     height: 550,
     backgroundColor: '#000000',
     pixelArt: true,
-     antialias: false,        //  blurry edges fix
+     antialias: true,        //  blurry edges fix
     roundPixels: false,       
     physics: {
         default: 'arcade' ,
@@ -31,7 +31,7 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     //scene: [MenuScene,LangScene,QuizScene,InstructionScene,BootScene,GameScene] 
-    scene: [GameScene] 
+    scene: [GameScene] //for debugging
     
 };
 
