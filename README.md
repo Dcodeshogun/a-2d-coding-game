@@ -25,4 +25,4 @@ The game mixes fast-paced combat with short logic-based challenges that reward s
 1. Clone this repository:  
    ```bash
    https://github.com/Dcodeshogun/a-2d-coding-game.git
-   cd Return0
+   cd a-2d-coding-game
