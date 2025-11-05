@@ -4,10 +4,10 @@ export default class InstructionScene extends Phaser.Scene {
   }
 
   preload() {
-    // load your instructions spritesheet
+    
     this.load.spritesheet('ui', 'src/ui/instrucions.png', { 
-      frameWidth: 800,   // adjust to your actual frame width
-      frameHeight: 550   // adjust to your actual frame height
+      frameWidth: 800,   
+      frameHeight: 550   
     });
   }
 
@@ -16,7 +16,7 @@ export default class InstructionScene extends Phaser.Scene {
 
    this.anims.create({
   key: 'instructionsAnim',
-  frames: this.anims.generateFrameNumbers('ui', { start: 0, end: 1 }), // adjust range
+  frames: this.anims.generateFrameNumbers('ui', { start: 0, end: 1 }), 
   frameRate: 2,
   repeat: -1
 });
@@ -24,9 +24,9 @@ export default class InstructionScene extends Phaser.Scene {
 this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'ui').play('instructionsAnim');
 
 
-    // Click anywhere to continue
+    
     this.input.on('pointerdown', () => {
-        this.cameras.main.fadeOut(200, 0, 0, 0); // 500ms fade, black
+        this.cameras.main.fadeOut(200, 0, 0, 0); 
         this.cameras.main.once('camerafadeoutcomplete', () => {
         this.scene.start('BootScene');
       });

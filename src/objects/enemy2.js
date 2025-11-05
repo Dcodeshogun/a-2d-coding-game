@@ -37,6 +37,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
 
     this.createAnimations(scene);
     this.play('punch-enemy-idle');
+    //this.setDepth(1);//depth
   }
 
   createAnimations(scene) {
@@ -198,10 +199,14 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     if (this.healthBar) this.healthBar.destroy();
     this.once('animationcomplete', () => this.destroy());
   }
-  updateHealthBar() {
-    // bar above enemy
-    const x = this.x - this.healthBarWidth /14;
+ updateHealthBar() {
+    // base position above enemy
+    let x = this.x - this.healthBarWidth / 8;
     const y = this.y - this.body.height - 26;
+
+    if (this.flipX) {
+        x = this.x - this.healthBarWidth ; // or tweak if needed
+    }
 
     // Background
     this.healthBarBg.clear();
@@ -218,6 +223,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
     this.healthBarFg.fillStyle(color, 1);
     this.healthBarFg.fillRect(x, y, this.healthBarWidth * healthPercent, this.healthBarHeight);
 }
+
 
 }
 

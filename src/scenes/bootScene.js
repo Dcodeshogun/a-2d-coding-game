@@ -6,32 +6,34 @@ export default class BootScene extends Phaser.Scene {
   create() {
     const menuScene = this.scene.get('MenuScene');
     if (menuScene && menuScene.bgm) {
-        this.tweens.add({
-            targets: menuScene.bgm,
-            volume: 0,          // fade to 0
-            duration: 500,     // 1 second fade
-            onComplete: () => menuScene.bgm.stop()
-        });
+      this.tweens.add({
+        targets: menuScene.bgm,
+        volume: 0,
+        duration: 500,
+        onComplete: () => menuScene.bgm.stop()
+      });
     }
-    // Background
+
     this.cameras.main.setBackgroundColor('#000000');
+
     
     this.add.text(100, 40, "type-2B", {
-        font: "48px 'Press Start 2P'",
-        fill: "#E0FFFF",  // white-cyan
-        align: "left"
-    }).setOrigin(0.5, 0); 
+      font: "48px sans-serif", 
+      fill: "#E0FFFF",
+      align: "left"
+    }).setOrigin(0.5, 0);
 
+    
     this.add.text(100, 100, "BOOTING SYSTEM...", {
-        font: "16px 'Press Start 2P'",
-        fill: "#E0FFFF",  // white-cyan
-        align: "left"
-    }).setOrigin(0.5, 0); 
+      font: "16px sans-serif",
+      fill: "#E0FFFF",
+      align: "left"
+    }).setOrigin(0.5, 0);
 
-    // Style config for text
+    
     const style = {
-      fontFamily: "24px 'Press Start 2P'",
-      fontSize: '24x',
+      fontFamily: "sans-serif", 
+      fontSize: '18px',
       color: '#E0FFFF',
       align: 'left'
     };
@@ -66,22 +68,20 @@ export default class BootScene extends Phaser.Scene {
         let fullLine = lines[i];
         let charIndex = 0;
 
-        // typewriter effect
         const typeChar = () => {
           if (charIndex < fullLine.length) {
             lineText.setText(lineText.text + fullLine[charIndex]);
             charIndex++;
-            this.time.delayedCall(30, typeChar); // speed of letters
+            this.time.delayedCall(30, typeChar);
           } else {
-            y += 20; // move to next line
+            y += 20;
             i++;
-            this.time.delayedCall(30, showNextLine); // delay before next line starts
+            this.time.delayedCall(30, showNextLine);
           }
         };
 
         typeChar();
       } else {
-        // After last line, fade out whole screen
         const fadeRect = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000)
           .setOrigin(0, 0)
           .setDepth(999)
@@ -90,9 +90,9 @@ export default class BootScene extends Phaser.Scene {
         this.tweens.add({
           targets: fadeRect,
           alpha: 1,
-          duration: 1000, // fade duration
+          duration: 1000,
           onComplete: () => {
-            this.scene.start('GameScene'); // switch scene after fade
+            this.scene.start('GameScene');
           }
         });
       }

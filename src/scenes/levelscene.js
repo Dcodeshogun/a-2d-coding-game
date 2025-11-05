@@ -8,15 +8,33 @@ import {PunchEnemy} from '../objects/enemy2.js';
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' });
+    
   }
 
   preload() {
 
     this.load.audio('pod-fire', 'audio/sfx/pod-engage.mp3');
+    this.load.audio('bgm1', 'audio/bgm/l1bgm.mp3');
+    this.load.audio('korose', 'audio/sfx/korose.mp3');
+    this.load.audio('korose2', 'audio/sfx/korose2.mp3');
+    this.load.audio('heel1', 'audio/sfx/heel1.mp3');
+    this.load.audio('heel2', 'audio/sfx/heel2.mp3');
+    this.load.audio('heel3', 'audio/sfx/heel3.mp3');
+    this.load.audio('damage1', 'audio/sfx/damage1.mp3');
+    this.load.audio('damage2', 'audio/sfx/damage2.mp3');
+    this.load.audio('death', 'audio/sfx/grunt.mp3');
+    this.load.audio('lightslash', 'audio/sfx/lightslash.mp3');
+    this.load.audio('slash1', 'audio/sfx/slash1.mp3');
+    this.load.audio('slash2', 'audio/sfx/slash2.mp3');
+    this.load.audio('swing1', 'audio/sfx/swing1.mp3');
+    this.load.audio('swing2', 'audio/sfx/swing2.mp3');
+    this.load.audio('downslash', 'audio/sfx/slash.mp3');
+
 
     this.load.spritesheet('background', 'assets/mainbg-Sheet.png', {
       frameWidth: 1600, frameHeight: 558
     });
+
     this.load.image('bg-layer2', 'assets/parallparallaxtrusses-Sheet.png');
     this.load.spritesheet('wires', 'assets/parallaxwires-Sheet.png', {
      frameWidth: 1800, frameHeight: 558
@@ -42,8 +60,15 @@ export default class GameScene extends Phaser.Scene {
     this.load.spritesheet('slash', 'assets/2B_slash.png', {
       frameWidth: 256, frameHeight: 159
     });
-
-
+    // down slash
+    this.load.spritesheet('down-slash', 'assets/2B_downslash.png', {
+      frameWidth: 192,
+      frameHeight: 128
+    });
+    // double slash
+    this.load.spritesheet('double-slash', 'assets/2B-doubleswipe.png', {
+      frameWidth: 224, frameHeight: 128
+    });
     // Pod
     this.load.spritesheet('pod', 'assets/POD-Sheet.png', {
       frameWidth: 64, frameHeight: 64
@@ -71,17 +96,27 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.fadeIn(600, 0, 0, 0); // 500ms fade from black
-   
+    this.cameras.main.fadeIn(600, 0, 0, 0); //  fade in
+    // Play 
+    this.bgm1 = this.sound.add('bgm1', {
+        volume: 0.19,   
+        rate:1.05,
+        loop: true      
+    });
+    this.bgm1.play();
   
-
-
+  this.time.delayedCall(4000, () => {
+    this.sound.play('korose', { volume: 0.2 });
+  });
+  this.time.delayedCall(8000, () => {
+    this.sound.play('korose2', { volume: 0.15 });
+  });
   // GROUND
       // Ground collider 
       this.ground = this.add.rectangle(800, 454, 1600, 40, 0x00ff00); 
       this.physics.add.existing(this.ground, true); // true = static body
 
-  // BACKGROUND    
+  // BACKGROUND   
     // Background anim (temporary)
     this.anims.create({
       key: 'bg-anim',
@@ -93,7 +128,7 @@ export default class GameScene extends Phaser.Scene {
     this.bg.play('bg-anim');
     // Darkening the background 
     let bgDark = this.add.rectangle(600, 300, 2000, 600, 0x000000, 0.3);
-    
+    bgDark.setScrollFactor(0); // stays fixed on screen
    
 
     // Parallax backgrounds
@@ -122,9 +157,24 @@ export default class GameScene extends Phaser.Scene {
   // player using Player.js
   this.player = new Player(this, 100, 433);
   this.cameras.main.startFollow(this.player);
-  
+  const barWidth1 = 250;
+  const barHeight1 = 4;
+  this.cooldownBarBg = this.add.rectangle(21, 33, barWidth1, barHeight1, 0x585350).setOrigin(0, 0);
+  this.cooldownBar = this.add.rectangle(21, 33, 0, barHeight1, 0xfffcf9).setOrigin(0, 0);
+  this.uielem = this.add.rectangle(275, 33, 6, 4, 0xfffcf9).setOrigin(0, 0);
+  this.cooldownBar.maxWidth = barWidth1;
+  this.cooldownBarBg.setScrollFactor(0);
+  this.cooldownBar.setScrollFactor(0);
+  this.uielem.setScrollFactor(0);
+  this.cooldownBarBg.setDepth(1000);
+  this.uielem.setDepth(1001);
+  this.cooldownBar.setDepth(1001);
+
   // pod using Pod.js
   this.pod = new Pod(this, 100, 339,this.player);
+  if (this.registry.values.podCharges !== undefined) {
+  this.pod.maxUses = this.registry.values.podCharges;
+  }
   this.physics.add.collider(this.player, this.ground);
   this.physics.add.collider(this.pod, this.ground);
    
@@ -171,86 +221,169 @@ this.updateHealthBar = () => {
 this.updateHealthBar();
 
 
+  this.podChargeText = this.add.text(600, 10, '', {
+    fontFamily: 'monospace',
+    fontSize: '16px',
+    color: '#fff'
+  });
+  this.podChargeText.setScrollFactor(0);
+  this.podChargeText.setDepth(1000);
    //--------------------------------------------------------------------------------------------------------------------------
 
-    // --- ENEMIES ---
-    this.enemies = this.physics.add.group({
-      classType: Enemy,
-      runChildUpdate: true
+// --- ENEMIES ---
+this.enemies = this.physics.add.group({
+  classType: Enemy,
+  runChildUpdate: true
+});
+this.punchEnemies = this.physics.add.group({
+  classType: PunchEnemy,
+  runChildUpdate: true
+});
+
+
+const startY = 433;
+const maxEnemies = 15;        
+const maxAliveAtOnce = 5;       
+this.totalSpawnedEnemies = 0;
+
+
+for (let i = 0; i < 3; i++) {
+  let x = 900 + Math.random()*900;
+  let enemy = new Enemy(this, x, startY, this.player);
+  this.enemies.add(enemy);
+  this.physics.add.collider(enemy, this.ground);
+  this.totalSpawnedEnemies++;
+}
+
+
+for (let i = 0; i < 4; i++) {
+  let x = 800 + Math.random()*500;
+  let punchEnemy = new PunchEnemy(this, x, startY, this.player);
+  this.punchEnemies.add(punchEnemy);
+  this.physics.add.collider(punchEnemy, this.ground);
+  this.totalSpawnedEnemies++;
+}
+for (let i = 0; i < 4; i++) {
+  let x = 600 + Math.random()*700;
+  let punchEnemy = new PunchEnemy(this, x, startY, this.player);
+  this.punchEnemies.add(punchEnemy);
+  this.physics.add.collider(punchEnemy, this.ground);
+  this.totalSpawnedEnemies++;
+}
+
+
+
+
+// WAVE SPAWNER
+this.time.addEvent({
+  delay: 2500,   // spawn every 2.5s
+  loop: true,
+  callback: () => {
+    const alive = this.enemies.countActive(true) + this.punchEnemies.countActive(true);
+
+    // Stop spawning if limit reached
+    if (this.totalSpawnedEnemies >= maxEnemies) return;
+    if (alive >= maxAliveAtOnce) return;
+
+    const y = startY;
+    const x = 1500 + Phaser.Math.Between(0, 50); 
+
+    // Randomly pick enemy type
+    if (Math.random() < 0.5) {
+      const enemy = new Enemy(this, x, y, this.player);
+      this.enemies.add(enemy);
+      this.physics.add.collider(enemy, this.ground);
+    } else {
+      const punchEnemy = new PunchEnemy(this, x, y, this.player);
+      this.punchEnemies.add(punchEnemy);
+      this.physics.add.collider(punchEnemy, this.ground);
+    }
+
+    this.totalSpawnedEnemies++;
+  }
+});
+
+// LEVEL COMPLETE CHECK
+this.checkLevelComplete = () => {
+  const totalAlive = this.enemies.countActive(true) + this.punchEnemies.countActive(true);
+
+  if (this.totalSpawnedEnemies >= maxEnemies && totalAlive === 0) {
+    if (this.bgm1 && this.bgm1.isPlaying) {
+      this.tweens.add({
+        targets: this.bgm1,
+        volume: 0,
+        duration: 2000,
+        onComplete: () => this.bgm1.stop()
+      });
+    }
+
+    if (this.pod) this.pod.stopFiring();
+      this.time.delayedCall(2500, () => {
+      this.input.keyboard.removeAllListeners();
+      this.scene.start('QuizScene', { level: 2, nextLevel: 2,skipInstruction: true });
     });
-    this.punchEnemies = this.physics.add.group({
-      classType: PunchEnemy,
-      runChildUpdate: true
-    });
-    
+  }
+};
 
-      // Spawn a single PunchEnemy at start
-      const startX = 1200; 
-      const startY = 433;  
-      this.firstPunchEnemy = new PunchEnemy(this, startX, startY, this.player);
-      this.punchEnemies.add(this.firstPunchEnemy);
-      this.physics.add.collider(this.firstPunchEnemy, this.ground);
+this.events.on('update', this.checkLevelComplete);
 
 
-    // Player–enemy overlap (explode when they touch)
+
     this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
       enemy.explode();
     }, null, this);
-    //damage and death
-    this.player.on('hitByEnemy', (damage = 30) => { // default 30 damage
+   
+    this.player.on('hitByEnemy', (damage = 30) => { 
     if (this.player.isDead) return; 
 
     this.player.health -= damage;
 
-    // Clamp health to 0
     if (this.player.health <= 0) {
         this.player.health = 0;
-        this.player.die();  // call die 
+        this.player.die();  
     }
 
     this.updateHealthBar();
 });
 
 
-    // Player attack vs PunchEnemy
     this.physics.add.overlap(this.player, this.punchEnemies, (player, punchEnemy) => {
         if (player.isAttacking) {
-            punchEnemy.takeDamage(25); // heavy attack
+            punchEnemy.takeDamage(25); 
         }
     }, null, this);
 
 
-    // Spawn enemies every 4 seconds from right edges
-    this.time.addEvent({
-      delay: 4000,
-      loop: true,
-      callback: () => {
-        const cam = this.cameras.main;
-        const x = cam.worldView.x + cam.width + 50; // right edge
-        const y = 433; // ground level
+  //    this.time.addEvent({
+  //     delay: 4000,
+  //     loop: true,
+  //     callback: () => {
+  //       const cam = this.cameras.main;
+  //       const x = cam.worldView.x + cam.width + 50; 
+  //       const y = 433; 
 
-        let enemy = new Enemy(this, x, y, this.player);
-        this.enemies.add(enemy);
+  //       let enemy = new Enemy(this, x, y, this.player);
+  //       this.enemies.add(enemy);
 
-        // Ensure enemy collides with ground
-        this.physics.add.collider(enemy, this.ground);
-      }
-    });
-  //Spawn enemy2 every 7 sec
-   this.time.addEvent({
-    delay: 7000, // spawn every 7 seconds
-    loop: true,
-    callback: () => {
-        const cam = this.cameras.main;
-        const x = cam.worldView.x + cam.width + Phaser.Math.Between(25, 400); // right side, random offset
-        const y = 433; // ground
+    
+  //       this.physics.add.collider(enemy, this.ground);
+  //     }
+  //   });
+ 
+  //  this.time.addEvent({
+  //   delay: 7000, 
+  //   loop: true,
+  //   callback: () => {
+  //       const cam = this.cameras.main;
+  //       const x = cam.worldView.x + cam.width + Phaser.Math.Between(25, 400); 
+  //       const y = 433; 
 
-        let punchEnemy = new PunchEnemy(this, x, y, this.player);
-        this.punchEnemies.add(punchEnemy);
+  //       let punchEnemy = new PunchEnemy(this, x, y, this.player);
+  //       this.punchEnemies.add(punchEnemy);
 
-        this.physics.add.collider(punchEnemy, this.ground);
-      }
-  });
+  //       this.physics.add.collider(punchEnemy, this.ground);
+  //     }
+  // });
       this.anims.create({
       key: 'spark-anim',
       frames: this.anims.generateFrameNumbers('spark', { start: 0, end: 53 }), // adjust frames
@@ -276,13 +409,11 @@ this.updateHealthBar();
 
   }
 
-  
-
   setupPlayerMovement() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasd = this.input.keyboard.addKeys('W,S,A,D');
     this.slashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-     // Additional keys for Pod actions
+    this.specialKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.podFireKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
   }
 
@@ -313,29 +444,56 @@ this.updateHealthBar();
     } else {
         this.player.play('player-idle', true);
     }
+    if (moving) {
+        if (!this.player.walkTimer) this.player.walkTimer = 0;
+        this.player.walkTimer += this.game.loop.delta;
+
+        if (this.player.walkTimer >= 350) { 
+            this.player.playRandomHeelSound();
+            this.player.walkTimer = 0;
+        }
+    }
   }
 
-    // Attack check
+  if (this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S), 0)
+      && Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE))) {
+    this.player.downSlash();
+  }
+
   if (Phaser.Input.Keyboard.JustDown(this.slashKey)) {
     this.player.attack();
   }
-
+  if (Phaser.Input.Keyboard.JustDown(this.specialKey)) {
+    this.player.specialAttack();
+  }
  if (Phaser.Input.Keyboard.JustDown(this.podFireKey)) {
     this.pod.engageFire(this);
   }
+ 
 
-  // Only update pod to walk/idle if not engaging or firing
   if (this.pod.state === 'idle' || this.pod.state === 'walk') {
       if (moving) this.pod.walk();
       else this.pod.idle();
   }
+  this.podChargeText.setText(`Barrage Charges: ${this.pod.maxUses - this.pod.currentUses}/${this.pod.maxUses}`);
 
-     
-  // Parallax effect (slower scroll than main camera)
+
   this.bgLayer2.setScrollFactor(1.6); 
   this.wires.setScrollFactor(1.3);     
 
   this.pod.update(); 
+
+  if (this.player && !this.player.canUseSpecial) {
+    
+    const elapsed = this.player.scene.time.now - this.player.specialStartTime;
+    const progress = Phaser.Math.Clamp(elapsed / this.player.specialCooldown, 0, 1);
+
+    
+    this.cooldownBar.width = this.cooldownBar.maxWidth * progress;
+  } else if (this.player && this.player.canUseSpecial) {
+    this.cooldownBar.width = this.cooldownBar.maxWidth;
+  }
+
   
  
   }

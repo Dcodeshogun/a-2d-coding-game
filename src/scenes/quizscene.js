@@ -1,190 +1,251 @@
-import {level1questions} from '../data/level1questions.js';  // default import
+
+const questionsPerLevel = {
+  1: [
+    { type: 'mcq', prompt: "Which of these is a valid variable declaration in C++?", options: ["int 5num;", "int num5;", "num int;", "integer num;"], answer: 1 },
+    { type: 'input', prompt: "Write the correct keyword to define a constant integer num: ___ int num = 10;", answer: "const" },
+    { type: 'mcq', prompt: "What is the output type of 'sizeof(int)' in C++?", options: ["int", "size_t", "void", "char"], answer: 1 },
+    {
+      type: 'mcq',
+      prompt: "What does 'protected' access specifier mean in C++?",
+      options: [
+        "Accessible only inside the same class",
+        "Accessible inside the same class and derived classes",
+        "Accessible everywhere",
+        "Accessible only by friends"
+      ],
+      answer: 1
+    },
+    {
+      type: 'input',
+      prompt: "Write the keyword used to handle exceptions: ___",
+      answer: "try"
+    }
+  ],
+  2: [
+    { type: 'mcq', prompt: "Which operator is used to access members through a pointer?", options: ["*", "&", "->", "."], answer: 2 },
+    { type: 'input', prompt: "Write the keyword used to declare a reference in C++: ___ int &ref = num;", answer: "int" },
+    { type: 'mcq', prompt: "Which header file is needed for std::vector?", options: ["<vector>", "<array>", "<list>", "<map>"], answer: 0 },
+    {
+      type: 'mcq',
+      prompt: "Which of the following can’t be overloaded in C++?",
+      options: ["++", "==", "::", "+"],
+      answer: 2
+    },
+    {
+      type: 'mcq',
+      prompt: "Which of the following is true about references?",
+      options: [
+        "A reference can be null",
+        "A reference must be initialized when declared",
+        "A reference can be reseated to another variable",
+        "References consume more memory than pointers"
+      ],
+      answer: 1
+    }
+  ]
+};
 
 export default class QuizScene extends Phaser.Scene {
   constructor() {
     super({ key: 'QuizScene' });
-    this.questions = [];
-    this.currentIndex = 0;   // consistent name
-    this.inputDom = null;
+    this.endMessages = {
+      1: "Pod-096> Nodes secured. Returning back to factory ruins...",
+      2: "Pod-096> All nodes patched. Resume search in the mall ruins...",
+      3: "Pod-096> Inheritance restored. Proceed to next sector...",
+      4: "Pod-096> Polymorphic overrides fixed. All systems stable..."
+    };
   }
 
   preload() {
-    this.load.image('quizBg', 'src/ui/quiz-bg.png');
+    this.load.image('terminalBg', 'src/ui/quiz-bg.png');
+    this.load.audio('correct', './audio/sfx/correct.mp3');         
+    this.load.audio('wrong', './audio/sfx/Error.mp3');     
   }
 
   create(data = {}) {
-    this.level = data.level || this.registry.get('currentLevel') || 1;
+    this.level = data.level || 1;
+    this.nextLevel = data.nextLevel || this.level + 1;
+    this.skipInstruction = data.skipInstruction || false; 
 
-    const bg = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'quizBg');
-    bg.setOrigin(0.5);
+    this.questions = questionsPerLevel[this.level]; 
+    this.currentIndex = 0;
+    this.wrongCount = 0; // <-- track wrong answers
 
-    this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0)
-      .setOrigin(0, 0);
+    const menuScene = this.scene.get('MenuScene');
+    if (menuScene && menuScene.bgm) {
+      this.tweens.add({
+        targets: menuScene.bgm,
+        volume: 0,
+        duration: 500,
+        onComplete: () => menuScene.bgm.stop()
+      });
+    }
+    this.sfx = {
+      correct: this.sound.add('correct', { volume: 0.15 }),
+      wrong: this.sound.add('wrong', { volume: 0.15 }),
+    };
 
-    this.add.text(39, 24, `Level ${this.level} — OOP concept`, {
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      color: '#ffffff'
-    });
+    this.add.image(0, 0, 'terminalBg').setOrigin(0, 0);
+    this.terminalBuffer = [];
+    this.maxLines = 22;
+    this.lineHeight = 26;
 
-    this.storyFull = this.getIntroTextForLevel(this.level);
-    this.storyTextObj = this.add.text(40, 60, '', {
+    this.storyTextObj = this.add.text(40, 40, '', {
       fontFamily: 'monospace',
       fontSize: '18px',
-      color: '#ffffff',
-      wordWrap: { width: this.cameras.main.width - 80 }
+      color: '#00ff88ff',
+      wordWrap: { width: 720 }
     });
 
-    this.typewriter(this.storyFull, 30, () => {
-      this.time.delayedCall(300, () => this.startQuestions());
-    });
-
-    this.qStartY = 160;
-    this.qTextObj = null;
     this.optionTexts = [];
+    this.inputDom = null;
 
-    this.add.text(40, this.cameras.main.height - 20,
-      "Click answers with mouse. Snippet questions use input box.", {
-        fontFamily: 'monospace',
-        fontSize: '12px',
-        color: '#0xff0000'
-      });
-  }
-
-  // ---------- Question flow ----------
-  startQuestions() {
-    this.questions = this.getQuestionsForLevel(this.level);
-    console.log("Loaded questions:", this.questions); // DEBUG
-    this.currentIndex = 0;
-    this.showCurrentQuestion();
-  }
-
-  showCurrentQuestion() {
-    // end of quiz
-    if (this.currentIndex >= this.questions.length) {
-      this.onQuizComplete();
-      return;
-    }
-
-    // Clear old UI
-    if (this.questionText) this.questionText.destroy();
-    if (this.optionTexts) this.optionTexts.forEach(t => t.destroy());
-
-    let q = this.questions[this.currentIndex];
-
-    // Show "Q1/5"
-    if (this.questionCounterText) this.questionCounterText.destroy();
-    this.questionCounterText = this.add.text(58, 110, `Q${this.currentIndex + 1}/${this.questions.length}`, {
-      fontSize: "18px",
-      fill: "#fff"
-    }).setOrigin(0.5);
-
-    // Show the question text
-    this.questionText = this.add.text(360, 250, q.prompt, {
-      fontSize: "16px",
-      fill: "#0x4c4940",
-      wordWrap: { width: 700 }
-    }).setOrigin(0.5);
-
-    // Options 
-    q.options.forEach((opt, index) => {
-    let option = this.add.text(32, 370 + index * 19, `${index + 1}. ${opt}`, {
-        fontSize: "16px",
-        fill: "#0x4c4940"
-    }).setOrigin(0.0);
-
-    option.setInteractive({ useHandCursor: true });
-    option.on("pointerdown", () => {
-        this.handleAnswer(index === q.answer);
-    });
-
-    this.optionTexts.push(option);
+    this.printLine("[Pod-096://> Initializing Node patch sequence]");
+    this.typewriter("Detected C++ inconsistencies. Patching nodes...", 35, () => {
+      this.showNextQuestion();
     });
   }
 
-  handleAnswer(correct) {
-    this.showFeedback(correct);
+  printLine(line) {
+    this.terminalBuffer.push(line);
+    if (this.terminalBuffer.length > this.maxLines) this.terminalBuffer.shift();
+    this.storyTextObj.setText(this.terminalBuffer.join('\n'));
   }
 
-  showFeedback(correct) {
-    const msg = correct ? 'Correct — Pod Barrage AmmunitionCharge +1' : 'Incorrect';
-    const color = correct ? '#88ff88' : '#ff8888';
-
-    const txt = this.add.text(this.cameras.main.centerX - 200, this.cameras.main.height-90, msg, {
-      fontFamily: 'monospace',
-      fontSize: '22px',
-      color: color
-    });
-
-    this.time.delayedCall(2000, () => {
-      txt.destroy();
-      this.currentIndex++;
-      this.showCurrentQuestion();
-    });
-  }
-
-  // ---------- end of quiz ----------
-  onQuizComplete() {
-    this.add.text(this.cameras.main.centerX - 160, this.cameras.main.height - 80,
-      'All checks complete. Returning to factory ruins...', {
-        fontFamily: 'monospace',
-        fontSize: '16px',
-        color: '#ffffff'
-      });
-
-    this.cameras.main.flash(250, 180, 200, 255);
-
-    this.time.delayedCall(1400, () => {
-      this.scene.start('InstructionScene', { levelCompleted: this.level });
-    });
-  }
-
-  typewriter(text, speed = 40, onComplete = null) {
+  typewriter(line, speed = 25, onComplete = null) {
+    if (this.typewriterEvent) this.typewriterEvent.remove(false);
     let i = 0;
-    this.storyTextObj.setText('');
-    const ev = this.time.addEvent({
+    let printed = '';
+    this.typewriterEvent = this.time.addEvent({
       delay: speed,
       callback: () => {
-        this.storyTextObj.text += text[i] || '';
+        printed += line[i];
         i++;
-        if (i >= text.length) {
-          ev.remove(false);
+        const visible = [...this.terminalBuffer, printed].join('\n');
+        this.storyTextObj.setText(visible);
+        if (i >= line.length) {
+          this.typewriterEvent.remove(false);
+          this.terminalBuffer.push(line);
+          if (this.terminalBuffer.length > this.maxLines) this.terminalBuffer.shift();
           if (onComplete) onComplete();
         }
       },
-      repeat: text.length - 1
-    });
-
-    this.input.once('pointerdown', () => {
-      ev.remove(false);
-      this.storyTextObj.setText(text);
-      if (onComplete) onComplete();
+      repeat: line.length - 1
     });
   }
 
-  getIntroTextForLevel(level) {
-    const map = {
-      1: "Pod-042: Corrupted class definitions detected.\n2B: Patch the declarations — restore structure.",
-      2: "Pod-042: Encapsulation breach found. Seal internal states.",
-      3: "Pod-042: Inheritance chains broken. Reconnect derived behaviors.",
-      4: "Pod-042: Polymorphic dispatch corrupted. Restore virtual overrides."
-    };
-    return map[level] || "Pod-042: Unknown corruption. Solve these queries to stabilize the node.";
+  showNextQuestion() {
+    if (this.currentIndex >= this.questions.length) {
+      this.completeQuiz();
+      return;
+    }
+    const q = this.questions[this.currentIndex];
+
+    this.optionTexts.forEach(t => t.destroy());
+    this.optionTexts = [];
+    if (this.inputDom) {
+      this.inputDom.destroy();
+      this.inputDom = null;
+    }
+
+    this.typewriter(`[Node_${this.currentIndex + 1}] > ${q.prompt}`, 20, () => {
+      const paddingBelowText = 10;
+      this.lastQuestionY = this.storyTextObj.y + this.storyTextObj.height + paddingBelowText;
+      if (q.type === 'mcq') this.showMCQOptions(q);
+      else this.showTextInput(q);
+    });
   }
 
-  getQuestionsForLevel(level) {
-    if (level === 1) return level1questions;
+  showMCQOptions(question) {
+    const optionSpacing = 30;
+    const startX = 60;
+    question.options.forEach((opt, index) => {
+      const txt = this.add.text(startX, this.lastQuestionY + index * optionSpacing, `${index + 1}. ${opt}`, {
+        fontFamily: 'monospace',
+        fontSize: '18px',
+        color: '#5e906eff'
+      }).setInteractive({ useHandCursor: true });
 
-    const pools = {
-      2: [
-        {
-          type: 'mcq',
-          prompt: "Why make data members private?",
-          options: ['Faster code', 'Prevent external modification', 'Easier debugging', 'No reason'],
-          answer: 1
+      txt.on('pointerdown', () => {
+        this.optionTexts.forEach(t => t.disableInteractive && t.disableInteractive());
+        if (this.inputDom) { this.inputDom.destroy(); this.inputDom = null; }
+        this.handleAnswer(opt, question.answer, question.type, index);
+      });
+
+      this.optionTexts.push(txt);
+    });
+  }
+
+  showTextInput(question) {
+    const inputX = 190;
+    const inputY = this.lastQuestionY + 6;
+    this.inputDom = this.add.dom(inputX, inputY, 'input', {
+      width: '300px', fontSize: '18px', backgroundColor: '#000', color: '#3c6241ff', border: '1px solid #000000ff', padding: '3px'
+    });
+    this.inputDom.node.focus();
+    this.inputDom.addListener('keyup');
+    this.inputDom.on('keyup', event => {
+      if (event.key === 'Enter') {
+        this.inputDom.removeListener('keyup');
+        const val = this.inputDom.node.value;
+        this.handleAnswer(val, question.answer, question.type);
+      }
+    });
+    this.optionTexts.push(this.inputDom);
+  }
+
+  handleAnswer(given, correct, type, index = null) {
+    const isCorrect = type === 'mcq' ? index === correct : given.trim().toLowerCase() === correct.toLowerCase();
+
+    if (isCorrect) {
+      this.sfx.correct.play();
+      this.registry.values.podCharges = (this.registry.values.podCharges || 2) + 1;
+    } else {
+      this.sfx.wrong.play();
+      this.wrongCount++; 
+    }
+
+    const msg = isCorrect 
+      ? "Pod-096> CODE PATCHED — AmmunitionCharge +1" 
+      : "Pod-096> ERROR — Invalid input";
+
+    this.optionTexts.forEach(t => { try { t.destroy(); } catch(e) {} });
+    this.optionTexts = [];
+    if (this.inputDom) { try { this.inputDom.destroy(); } catch(e) {} this.inputDom = null; }
+
+    this.printLine("");
+    this.typewriter(msg, 20, () => {
+      // Check if wrong answers exceeded limit
+      if (this.wrongCount > 4) {
+        this.printLine("");
+        this.typewriter("Pod-096> CRITICAL FAILURE — Too many invalid inputs. Restarting node patch sequence...", 25, () => {
+          this.time.delayedCall(2000, () => {
+            this.scene.restart({ level: this.level, skipInstruction: this.skipInstruction });
+          });
+        });
+        return;
+      }
+
+      this.time.delayedCall(1100, () => {
+        this.currentIndex++;
+        this.showNextQuestion();
+      });
+    });
+  }
+
+  completeQuiz() {
+    this.printLine("");
+    this.registry.values.podCharges = (this.registry.values.podCharges || 2);
+    const msg = this.endMessages[this.level] || "Pod-042> All nodes patched. Returning to factory ruins...";
+
+    this.typewriter(msg, 25, () => {
+      this.time.delayedCall(2500, () => {
+        if (this.skipInstruction) {
+          this.scene.start('GameScene' + this.nextLevel, { level: this.nextLevel });
+        } else {
+          this.scene.start('InstructionScene', { level: this.nextLevel });
         }
-      ]
-    };
-    return pools[level] || [];
+      });
+    });
   }
 }
