@@ -194,44 +194,68 @@ export default class QuizScene extends Phaser.Scene {
     this.optionTexts.push(this.inputDom);
   }
 
-  handleAnswer(given, correct, type, index = null) {
-    const isCorrect = type === 'mcq' ? index === correct : given.trim().toLowerCase() === correct.toLowerCase();
+ handleAnswer(given, correct, type, index = null) {
+  const isCorrect = type === 'mcq'
+    ? index === correct
+    : given.trim().toLowerCase() === correct.toLowerCase();
 
-    if (isCorrect) {
-      this.sfx.correct.play();
-      this.registry.values.podCharges = (this.registry.values.podCharges || 2) + 1;
-    } else {
-      this.sfx.wrong.play();
-      this.wrongCount++; 
-    }
+  if (isCorrect) {
+    this.sfx.correct.play();
+    this.registry.values.podCharges = (this.registry.values.podCharges || 2) + 1;
+  } else {
+    this.sfx.wrong.play();
+    this.wrongCount++;
+  }
 
-    const msg = isCorrect 
-      ? "Pod-096> CODE PATCHED — AmmunitionCharge +1" 
-      : "Pod-096> ERROR — Invalid input";
+  const msg = isCorrect
+    ? "Pod-096> CODE PATCHED — AmmunitionCharge +1"
+    : "Pod-096> ERROR — Invalid input";
 
-    this.optionTexts.forEach(t => { try { t.destroy(); } catch(e) {} });
-    this.optionTexts = [];
-    if (this.inputDom) { try { this.inputDom.destroy(); } catch(e) {} this.inputDom = null; }
+  // clear options/input
+  this.optionTexts.forEach(t => { try { t.destroy(); } catch (e) {} });
+  this.optionTexts = [];
+  if (this.inputDom) { try { this.inputDom.destroy(); } catch (e) {} this.inputDom = null; }
 
-    this.printLine("");
-    this.typewriter(msg, 20, () => {
-      // Check if wrong answers exceeded limit
-      if (this.wrongCount > 4) {
-        this.printLine("");
-        this.typewriter("Pod-096> CRITICAL FAILURE — Too many invalid inputs. Restarting node patch sequence...", 25, () => {
-          this.time.delayedCall(2000, () => {
-            this.scene.restart({ level: this.level, skipInstruction: this.skipInstruction });
-          });
-        });
-        return;
+  this.printLine("");
+  this.typewriter(msg, 20, () => {
+    if (!isCorrect) {
+      // 👇 show correct answer when player gets it wrong
+      let correctMsg;
+      if (type === 'mcq') {
+        const correctOpt = this.questions[this.currentIndex].options[correct];
+        correctMsg = `Pod-096> Correct Answer: [${correct + 1}] ${correctOpt}`;
+      } else {
+        correctMsg = `Pod-096> Correct Answer: "${correct}"`;
       }
 
-      this.time.delayedCall(1100, () => {
-        this.currentIndex++;
-        this.showNextQuestion();
+      this.typewriter(correctMsg, 20, () => {
+        this.afterAnswerCheck();
+      });
+    } else {
+      this.afterAnswerCheck();
+    }
+  });
+}
+
+// helper to continue flow
+afterAnswerCheck() {
+  // if too many wrongs
+  if (this.wrongCount > 4) {
+    this.printLine("");
+    this.typewriter("Pod-096> CRITICAL FAILURE — Too many invalid inputs. Restarting node patch sequence...", 25, () => {
+      this.time.delayedCall(2000, () => {
+        this.scene.restart({ level: this.level, skipInstruction: this.skipInstruction });
       });
     });
+    return;
   }
+
+  this.time.delayedCall(1100, () => {
+    this.currentIndex++;
+    this.showNextQuestion();
+  });
+}
+
 
   completeQuiz() {
     this.printLine("");
