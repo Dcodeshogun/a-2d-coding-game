@@ -91,7 +91,7 @@ export default class GameScene extends Phaser.Scene {
 
 
 
-    this.load.image('vignette', 'assets/vignette-rect.png');
+    
 
   }
 
@@ -320,7 +320,7 @@ this.checkLevelComplete = () => {
     if (this.pod) this.pod.stopFiring();
       this.time.delayedCall(2500, () => {
       this.input.keyboard.removeAllListeners();
-      this.scene.start('QuizScene', { level: 2, nextLevel: 2,skipInstruction: true });
+      this.scene.start('TerminalCutscene2');
     });
   }
 };
@@ -399,10 +399,7 @@ this.events.on('update', this.checkLevelComplete);
     //  Play idle
     this.player.play('player-idle');
     
-    let vignette = this.add.image(800, 279, 'vignette');
-    vignette.setScrollFactor(0); // stays fixed on screen
-    vignette.setDepth(100);      // always on top
-    vignette.setAlpha(2.5);      // tweak intensity   
+ 
 
 
 

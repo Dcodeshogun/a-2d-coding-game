@@ -1,6 +1,6 @@
 export  class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, player) {
-    super(scene, x, y, 'suicide-enemy-walk'); // start with walk sprite
+    super(scene, x, y, 'suicide-enemy-walk'); 
 
     this.scene = scene;
     this.player = player;
@@ -9,31 +9,31 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     this.setCollideWorldBounds(true);
-    ///SCALE SPRITES
-    this.walkScale = 2.5     // walk sprite scale
-    this.explodeScale = 4;   // explode sprite scale
-    this.deathScale = 2.8   // death sprite scale
+    
+    this.walkScale = 2.5     
+    this.explodeScale = 4;   
+    this.deathScale = 2.8   
 
-    this.setOrigin(0.5, 1);       // bottom-aligned origin
+    this.setOrigin(0.5, 1);       
     this.setScale(this.walkScale); 
-    this.y = 433;                  // place on ground
-    this.body.setAllowGravity(false); // prevent falling
-    // Shrink hitbox to fit visible sprite
-    this.body.setSize(15, 60);   // width, height of actual visible part
-    this.body.setOffset(25, 5);  // shift hitbox inside the sprite (x, y)
+    this.y = 433;                  
+    this.body.setAllowGravity(false); 
+    
+    this.body.setSize(15, 60);   
+    this.body.setOffset(25, 5);  
 
 
     this.speed = 230
     this.explodeRange = 5;
     this.isDead = false;
-    this.state = 'walk'; // 'walk', 'explode', 'dead'
+    this.state = 'walk'; 
 
     this.createAnimations(scene);
     this.play('enemy-walk');
   }
 
   createAnimations(scene) {
-    // Walk
+    
     if (!scene.anims.exists('enemy-walk')) {
       scene.anims.create({
         key: 'enemy-walk',
@@ -43,7 +43,7 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
       });
     }
 
-    // Explode
+    
     if (!scene.anims.exists('enemy-explode')) {
       scene.anims.create({
         key: 'enemy-explode',
@@ -53,7 +53,7 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
       });
     }
 
-    // Death
+    
     if (!scene.anims.exists('enemy-death')) {
       scene.anims.create({
         key: 'enemy-death',
@@ -69,13 +69,13 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.isDead) return;
 
     if (this.state === 'walk') {
-        // Apply  tint 
-        this.setTint(0x999999); // light gray, slightly darkens the sprite
+        
+        this.setTint(0x999999); 
 
-        // Move toward player
+        
         this.scene.physics.moveToObject(this, this.player, this.speed);
 
-        // Face player
+        
         this.flipX = this.body.velocity.x > 0;
 
         const dist = Phaser.Math.Distance.Between(this.x, this.y, this.player.x, this.player.y);
@@ -83,7 +83,7 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
             this.explode();
         }
     } else {
-        // Remove tint 
+        
         this.clearTint();
     }
 }
@@ -95,18 +95,18 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.state = 'explode';
 
     this.setVelocity(0, 0);
-    this.setScale(this.explodeScale); // scale explode sprite
+    this.setScale(this.explodeScale); 
     this.y = 433;                      
     this.play('enemy-explode');
     
-    // Offset explosion a bit in front of enemy (to give visual effect)
-    const offsetX = this.flipX ? 37 : -37; // adjust 
+    
+    const offsetX = this.flipX ? 37 : -37; 
     this.x += offsetX;
     
-      // Camera shake
-    this.scene.cameras.main.shake(250, 0.01); // 200ms duration, 0.01 intensity
+      
+    this.scene.cameras.main.shake(250, 0.01); 
 
-    // Damage player
+    
     this.player.emit('hitByEnemy');
 
     this.once('animationcomplete', () => this.destroy());
@@ -118,7 +118,7 @@ export  class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.state = 'dead';
 
     this.setVelocity(0, 0);
-    this.setScale(this.deathScale); // scale death sprite
+    this.setScale(this.deathScale); 
     this.y = 433;                      
     this.play('enemy-death');
 

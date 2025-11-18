@@ -1,4 +1,4 @@
-
+import TerminalCutscene from "./src/scenes/testscene.js";
 import BootScene from "./src/scenes/bootScene.js";
 import MenuScene from "./src/scenes/menu.js";
 import GameScene from "./src/scenes/levelscene.js";
@@ -7,7 +7,9 @@ import InstructionScene from "./src/scenes/instructionScene.js";
 import LangScene from "./src/scenes/langselect.js";
 import QuizScene from "./src/scenes/quizscene.js";
 import GameoverScene from "./src/scenes/gameoverScene.js";
-
+import TerminalCutscene1 from "./src/scenes/cutscene1.js";
+import TerminalCutscene2 from "./src/scenes/cutscene2.js";
+import EndScene from "./src/scenes/endscene.js";
 
 
 const config = {
@@ -33,14 +35,17 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    scene: [MenuScene,LangScene,QuizScene,GameoverScene,InstructionScene,BootScene,GameScene,GameScene2] 
+   scene: [MenuScene,LangScene,TerminalCutscene1,QuizScene,GameoverScene,InstructionScene,BootScene,GameScene,TerminalCutscene2,GameScene2, EndScene] 
     //scene: [GameScene2] //for debugging
     //scene: [QuizScene,InstructionScene,BootScene,GameScene] //for debugging
     //scene: [GameScene,GameScene2]
     //scene: [QuizScene] //for debugging
     //scene:[BootScene]
-    
+    //scene:[TerminalCutscene1]
+    //scene:[TerminalCutscene2]
     //scene:[GameoverScene]
+    //scene:[InstructionScene]
+    //scene:[EndScene]
 };
 
 new Phaser.Game(config);

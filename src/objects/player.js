@@ -10,14 +10,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setScale(1.2).setCollideWorldBounds(true);
     this.setOrigin(0.5,1);
 
-    //player hitbox 
-    this.setSize(40, 40);      // collision box size
-    this.setOffset(40, 90);  // shift collision box inside sprite
+    
+    this.setSize(40, 40);      
+    this.setOffset(40, 90);  
 
     this.health = 240;
     this.maxHealth = 240;
 
-    //flash on hit
+    
     this.on('hitByEnemy', () => {
       if (this.isDead) return;  
       this.health -= 1;   
@@ -25,11 +25,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.playRandomDamageSound();
       if (this.health <= 0) {
         this.health = 0;
-        this.die(); // death animation
+        this.die(); 
       }
     });
 
-    // --- Animations wrapped safely ---
+    
     if (!scene.anims.exists('player-idle')) {
       scene.anims.create({
         key: 'player-idle',
@@ -93,7 +93,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.damageSoundCooldown = 500; 
   }
 
-  // --- Attack Methods ---
+  
   attack() {
     if (this.isAttacking || this.isDead) return;
 

@@ -14,27 +14,40 @@ export default class BootScene extends Phaser.Scene {
       });
     }
 
-    this.cameras.main.setBackgroundColor('#000000');
+    const { width, height } = this.cameras.main;
 
     
-    this.add.text(100, 40, "type-2B", {
-      font: "48px sans-serif", 
-      fill: "#E0FFFF",
-      align: "left"
+    this.add.rectangle(0, 0, width, height, 0x0b0d0f, 1).setOrigin(0, 0);
+
+    
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.3).setBlendMode('MULTIPLY');
+
+    
+    for (let i = 0; i < height; i += 3) {
+      this.add.rectangle(width / 2, i, width, 1, 0x7ae2b3, 0.02);
+    }
+
+    
+    this.add.text(130, 40, "TYPE-2B", {
+      fontFamily: 'Fira Code',
+      fontSize: '48px',
+      color: '#7ae2b3',
+      shadow: { offsetX: 0, offsetY: 0, color: '#7ae2b3', blur: 8, fill: true }
     }).setOrigin(0.5, 0);
 
     
-    this.add.text(100, 100, "BOOTING SYSTEM...", {
-      font: "16px sans-serif",
-      fill: "#E0FFFF",
-      align: "left"
+    this.add.text(170, 100, "BOOTING SYSTEM...", {
+      fontFamily: 'Fira Code',
+      fontSize: '28px',
+      color: '#cfe5ebff',
+      alpha: 0.8
     }).setOrigin(0.5, 0);
 
     
     const style = {
-      fontFamily: "sans-serif", 
+      fontFamily: 'Fira Code',
       fontSize: '18px',
-      color: '#E0FFFF',
+      color: '#79ffdeff', 
       align: 'left'
     };
 
@@ -64,7 +77,7 @@ export default class BootScene extends Phaser.Scene {
 
     const showNextLine = () => {
       if (i < lines.length) {
-        let lineText = this.add.text(20, y, "", style);
+        let lineText = this.add.text(40, y, "", style).setOrigin(0, 0);
         let fullLine = lines[i];
         let charIndex = 0;
 
@@ -72,28 +85,33 @@ export default class BootScene extends Phaser.Scene {
           if (charIndex < fullLine.length) {
             lineText.setText(lineText.text + fullLine[charIndex]);
             charIndex++;
-            this.time.delayedCall(30, typeChar);
+            this.time.delayedCall(24, typeChar);
           } else {
-            y += 20;
+            y += 22; 
             i++;
-            this.time.delayedCall(30, showNextLine);
+            this.time.delayedCall(50, showNextLine);
           }
         };
 
         typeChar();
       } else {
-        const fadeRect = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000)
+        
+        this.cameras.main.flash(300, 0, 255, 136);
+
+        const fadeRect = this.add.rectangle(0, 0, width, height, 0x000000)
           .setOrigin(0, 0)
           .setDepth(999)
           .setAlpha(0);
 
-        this.tweens.add({
-          targets: fadeRect,
-          alpha: 1,
-          duration: 1000,
-          onComplete: () => {
-            this.scene.start('GameScene');
-          }
+        this.time.delayedCall(300, () => {
+          this.tweens.add({
+            targets: fadeRect,
+            alpha: 1,
+            duration: 800,
+            onComplete: () => {
+              this.scene.start('GameScene'); 
+            }
+          });
         });
       }
     };

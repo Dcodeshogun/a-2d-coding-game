@@ -1,4 +1,3 @@
-
 const questionsPerLevel = {
   1: [
     { type: 'mcq', prompt: "Which of these is a valid variable declaration in C++?", options: ["int 5num;", "int num5;", "num int;", "integer num;"], answer: 1 },
@@ -58,18 +57,73 @@ export default class QuizScene extends Phaser.Scene {
 
   preload() {
     this.load.image('terminalBg', 'src/ui/quiz-bg.png');
-    this.load.audio('correct', './audio/sfx/correct.mp3');         
-    this.load.audio('wrong', './audio/sfx/Error.mp3');     
+    this.load.audio('correct', './audio/sfx/correct.mp3');
+    this.load.audio('wrong', './audio/sfx/Error.mp3');
   }
 
   create(data = {}) {
+ 
+// Add a subtle semi-transparent neon frame to make it feel like a console window
+const frame = this.add.graphics();
+frame.lineStyle(2, 0x00ffcc, 0.7);
+frame.strokeRoundedRect(25, 25, 750, 520, 12);
+frame.fillStyle(0x001a0d, 0.25);
+frame.fillRoundedRect(25, 25, 750, 520, 12);
+
+// Add faint corner accents
+const corner = this.add.graphics({ lineStyle: { width: 3, color: 0x00ffaa } });
+const drawCorner = (x, y, flipX = false, flipY = false) => {
+  const c = this.add.graphics();
+  c.lineStyle(3, 0x00ffaa, 0.8);
+  c.beginPath();
+  c.moveTo(x, y);
+  c.lineTo(x + (flipX ? -25 : 25), y);
+  c.moveTo(x, y);
+  c.lineTo(x, y + (flipY ? -25 : 25));
+  c.strokePath();
+};
+drawCorner(25, 25);
+drawCorner(775, 25, true, false);
+drawCorner(25, 545, false, true);
+drawCorner(775, 545, true, true);
+
+// === Add a faint animated scanline overlay for that terminal vibe ===
+const scanOverlay = this.add.graphics();
+scanOverlay.fillStyle(0x00ff99, 0.04);
+for (let i = 0; i < 550; i += 4) {
+  scanOverlay.fillRect(26, 25 + i, 748, 2);
+}
+scanOverlay.setBlendMode(Phaser.BlendModes.ADD);
+this.tweens.add({
+  targets: scanOverlay,
+  alpha: { from: 0.06, to: 0.15 },
+  duration: 1600,
+  yoyo: true,
+  repeat: -1,
+});
+
+// Terminal text styling (kept same as before but inside this frame)
+this.storyTextObj = this.add.text(40, 50, '', {
+  fontFamily: 'monospace',
+  fontSize: '18px',
+  color: '#7fff9e',
+  shadow: {
+    offsetX: 0,
+    offsetY: 0,
+    color: '#00ff88',
+    blur: 8,
+    fill: true
+  },
+  wordWrap: { width: 720 }
+});
+
     this.level = data.level || 1;
     this.nextLevel = data.nextLevel || this.level + 1;
-    this.skipInstruction = data.skipInstruction || false; 
+    this.skipInstruction = data.skipInstruction || false;
 
-    this.questions = questionsPerLevel[this.level]; 
+    this.questions = questionsPerLevel[this.level];
     this.currentIndex = 0;
-    this.wrongCount = 0; // <-- track wrong answers
+    this.wrongCount = 0;
 
     const menuScene = this.scene.get('MenuScene');
     if (menuScene && menuScene.bgm) {
@@ -85,15 +139,24 @@ export default class QuizScene extends Phaser.Scene {
       wrong: this.sound.add('wrong', { volume: 0.15 }),
     };
 
+   
     this.add.image(0, 0, 'terminalBg').setOrigin(0, 0);
     this.terminalBuffer = [];
     this.maxLines = 22;
     this.lineHeight = 26;
 
-    this.storyTextObj = this.add.text(40, 40, '', {
+    // Brighter green text, soft glow effect (optional drop shadow)
+    this.storyTextObj = this.add.text(60, 70, '', {
       fontFamily: 'monospace',
       fontSize: '18px',
-      color: '#00ff88ff',
+      color: '#7fff9e',
+      shadow: {
+        offsetX: 0,
+        offsetY: 0,
+        color: '#52e0f5ff',
+        blur: 8,
+        fill: true
+      },
       wordWrap: { width: 720 }
     });
 
@@ -163,9 +226,18 @@ export default class QuizScene extends Phaser.Scene {
       const txt = this.add.text(startX, this.lastQuestionY + index * optionSpacing, `${index + 1}. ${opt}`, {
         fontFamily: 'monospace',
         fontSize: '18px',
-        color: '#5e906eff'
+        color: '#72d4a7', // muted green for idle
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: '#00ffcc',
+          blur: 4,
+          fill: true
+        }
       }).setInteractive({ useHandCursor: true });
 
+      txt.on('pointerover', () => txt.setColor('#00ffcc'));  // hover glow
+      txt.on('pointerout', () => txt.setColor('#72d4a7'));
       txt.on('pointerdown', () => {
         this.optionTexts.forEach(t => t.disableInteractive && t.disableInteractive());
         if (this.inputDom) { this.inputDom.destroy(); this.inputDom = null; }
@@ -177,10 +249,15 @@ export default class QuizScene extends Phaser.Scene {
   }
 
   showTextInput(question) {
-    const inputX = 190;
+    const inputX = 210;
     const inputY = this.lastQuestionY + 6;
     this.inputDom = this.add.dom(inputX, inputY, 'input', {
-      width: '300px', fontSize: '18px', backgroundColor: '#000', color: '#3c6241ff', border: '1px solid #000000ff', padding: '3px'
+      width: '300px',
+      fontSize: '18px',
+      backgroundColor: '#24484aff',
+      color: '#34f4d7ff',
+      border: '1px solid #2af6e1e3',
+      padding: '3px'
     });
     this.inputDom.node.focus();
     this.inputDom.addListener('keyup');
@@ -194,68 +271,63 @@ export default class QuizScene extends Phaser.Scene {
     this.optionTexts.push(this.inputDom);
   }
 
- handleAnswer(given, correct, type, index = null) {
-  const isCorrect = type === 'mcq'
-    ? index === correct
-    : given.trim().toLowerCase() === correct.toLowerCase();
+  handleAnswer(given, correct, type, index = null) {
+    const isCorrect = type === 'mcq'
+      ? index === correct
+      : given.trim().toLowerCase() === correct.toLowerCase();
 
-  if (isCorrect) {
-    this.sfx.correct.play();
-    this.registry.values.podCharges = (this.registry.values.podCharges || 2) + 1;
-  } else {
-    this.sfx.wrong.play();
-    this.wrongCount++;
-  }
-
-  const msg = isCorrect
-    ? "Pod-096> CODE PATCHED — AmmunitionCharge +1"
-    : "Pod-096> ERROR — Invalid input";
-
-  // clear options/input
-  this.optionTexts.forEach(t => { try { t.destroy(); } catch (e) {} });
-  this.optionTexts = [];
-  if (this.inputDom) { try { this.inputDom.destroy(); } catch (e) {} this.inputDom = null; }
-
-  this.printLine("");
-  this.typewriter(msg, 20, () => {
-    if (!isCorrect) {
-      // 👇 show correct answer when player gets it wrong
-      let correctMsg;
-      if (type === 'mcq') {
-        const correctOpt = this.questions[this.currentIndex].options[correct];
-        correctMsg = `Pod-096> Correct Answer: [${correct + 1}] ${correctOpt}`;
-      } else {
-        correctMsg = `Pod-096> Correct Answer: "${correct}"`;
-      }
-
-      this.typewriter(correctMsg, 20, () => {
-        this.afterAnswerCheck();
-      });
+    if (isCorrect) {
+      this.sfx.correct.play();
+      this.registry.values.podCharges = (this.registry.values.podCharges || 2) + 1;
     } else {
-      this.afterAnswerCheck();
+      this.sfx.wrong.play();
+      this.wrongCount++;
     }
-  });
-}
 
-// helper to continue flow
-afterAnswerCheck() {
-  // if too many wrongs
-  if (this.wrongCount > 4) {
+    const msg = isCorrect
+      ? "Pod-096> CODE PATCHED — AmmunitionCharge +1"
+      : "Pod-096> ERROR — Invalid input";
+
+    this.optionTexts.forEach(t => { try { t.destroy(); } catch (e) {} });
+    this.optionTexts = [];
+    if (this.inputDom) { try { this.inputDom.destroy(); } catch (e) {} this.inputDom = null; }
+
     this.printLine("");
-    this.typewriter("Pod-096> CRITICAL FAILURE — Too many invalid inputs. Restarting node patch sequence...", 25, () => {
-      this.time.delayedCall(2000, () => {
-        this.scene.restart({ level: this.level, skipInstruction: this.skipInstruction });
-      });
+    this.typewriter(msg, 20, () => {
+      if (!isCorrect) {
+        let correctMsg;
+        if (type === 'mcq') {
+          const correctOpt = this.questions[this.currentIndex].options[correct];
+          correctMsg = `Pod-096> Correct Answer: [${correct + 1}] ${correctOpt}`;
+        } else {
+          correctMsg = `Pod-096> Correct Answer: "${correct}"`;
+        }
+
+        this.typewriter(correctMsg, 20, () => {
+          this.afterAnswerCheck();
+        });
+      } else {
+        this.afterAnswerCheck();
+      }
     });
-    return;
   }
 
-  this.time.delayedCall(1100, () => {
-    this.currentIndex++;
-    this.showNextQuestion();
-  });
-}
+  afterAnswerCheck() {
+    if (this.wrongCount > 4) {
+      this.printLine("");
+      this.typewriter("Pod-096> CRITICAL FAILURE — Too many invalid inputs. Restarting node patch sequence...", 25, () => {
+        this.time.delayedCall(2000, () => {
+          this.scene.restart({ level: this.level, skipInstruction: this.skipInstruction });
+        });
+      });
+      return;
+    }
 
+    this.time.delayedCall(1100, () => {
+      this.currentIndex++;
+      this.showNextQuestion();
+    });
+  }
 
   completeQuiz() {
     this.printLine("");

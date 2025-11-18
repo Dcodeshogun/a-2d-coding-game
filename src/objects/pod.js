@@ -16,7 +16,6 @@ export class Pod extends Phaser.Physics.Arcade.Sprite {
     this.createAnimations(scene);
     this.play('pod-idle');
 
-    // --- BULLET SETUP ---
     this.bullets = scene.physics.add.group({ classType: Phaser.Physics.Arcade.Image, runChildUpdate: true });
     this.isFiring = false;
 

@@ -57,7 +57,7 @@ export default class LangScene extends Phaser.Scene {
       
       this.cameras.main.fadeOut(200, 0, 0, 0); 
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('QuizScene');
+        this.scene.start('TerminalCutscene1', { selectedLang: 'C++' });
       });
     });
   

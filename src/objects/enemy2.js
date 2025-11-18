@@ -1,8 +1,8 @@
 export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, player) {
-    super(scene, x, y, 'punch-enemy-idle'); // idle sprite
+    super(scene, x, y, 'punch-enemy-idle'); 
     
-    this.maxHealth = 100;     // max health
+    this.maxHealth = 100;     
     this.health = this.maxHealth;
     
     this.scene = scene;
@@ -21,23 +21,23 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
 
     this.speed = 120;
     this.attackRange = 50;
-    this.lightPunchRange = 30;  // distance for light punch
+    this.lightPunchRange = 30;  
     this.lightPunchDamage = 20;
     this.heavyPunchDamage = 30;
 
     this.isDead = false;
     this.state = 'idle';
 
-    // Floating health bar
+    
     this.healthBarBg = this.scene.add.graphics();
     this.healthBarFg = this.scene.add.graphics();
-    this.healthBarWidth = 65;  // width of bar
-    this.healthBarHeight = 5;  // height of bar
+    this.healthBarWidth = 65;  
+    this.healthBarHeight = 5;  
 
 
     this.createAnimations(scene);
     this.play('punch-enemy-idle');
-    //this.setDepth(1);//depth
+    
   }
 
   createAnimations(scene) {
@@ -103,28 +103,28 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
 
     switch (this.state) {
       case 'idle':
-    // patrol movement
-    if (!this.patrolDirection) this.patrolDirection = -1; // 1 = right, -1 = left
-    this.setVelocityX(30 * this.patrolDirection); // move slowly
+    
+    if (!this.patrolDirection) this.patrolDirection = -1; 
+    this.setVelocityX(30 * this.patrolDirection); 
     this.flipX = this.patrolDirection > 0; 
 
-    // Turn around if hitting world bounds
+    
     if (this.body.blocked.right) this.patrolDirection = -1;
     if (this.body.blocked.left) this.patrolDirection = 1;
 
-    // Switch to glare when inside camera view
+    
     if (this.scene.cameras.main.worldView.contains(this.x, this.y)) {
       this.state = 'glare';
       this.setVelocity(0, 0);
       this.play({
         key: 'punch-enemy-idle',
-        repeat: 1 // plays twice total
+        repeat: 1 
       });
     }
     break;
 
   case 'glare':
-    // idle , then glare, then chase
+    
     this.once('animationcomplete-punch-enemy-idle', () => {
       this.play('punch-enemy-glare');
       this.once('animationcomplete-punch-enemy-glare', () => {
@@ -143,10 +143,10 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
         this.state = 'punch';
         this.setVelocity(0, 0);
 
-        // random pick heavy 40% or light 60%
+        
         if (Math.random() < 0.4) {  
             this.play('punch-enemy-punch2');
-            this.scene.cameras.main.shake(150, 0.01); // heavy punch impact
+            this.scene.cameras.main.shake(150, 0.01); 
             this.once('animationcomplete', () => {
                 this.player.emit('hitByEnemy', this.heavyPunchDamage);
                 this.state = 'chase';
@@ -154,7 +154,7 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
             });
         } else {
             this.play('punch-enemy-punch');
-            this.scene.cameras.main.shake(100, 0.005); // heavy punch impact
+            this.scene.cameras.main.shake(100, 0.005); 
             this.once('animationcomplete', () => {
                 this.player.emit('hitByEnemy', this.lightPunchDamage);
                 this.state = 'chase';
@@ -169,12 +169,12 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   takeDamage(amount) {
-    if (this.isDead) return;    // ignore if already dead
+    if (this.isDead) return;    
     this.health -= amount;
     this.updateHealthBar();
     if (this.health <= 0) {
         this.health = 0;
-        this.die();              // automatically die if health is 0
+        this.die();              
     } else {
         this.setTint(0xff0000);
         this.scene.time.addEvent({
@@ -194,26 +194,26 @@ export class PunchEnemy extends Phaser.Physics.Arcade.Sprite {
 
     this.body.enable = false;
 
-     // remove health bar 
+     
     if (this.healthBarBg) this.healthBarBg.destroy();
     if (this.healthBar) this.healthBar.destroy();
     this.once('animationcomplete', () => this.destroy());
   }
  updateHealthBar() {
-    // base position above enemy
+    
     let x = this.x - this.healthBarWidth / 8;
     const y = this.y - this.body.height - 26;
 
     if (this.flipX) {
-        x = this.x - this.healthBarWidth ; // or tweak if needed
+        x = this.x - this.healthBarWidth ; 
     }
 
-    // Background
+    
     this.healthBarBg.clear();
     this.healthBarBg.fillStyle(0x575349, 1);
     this.healthBarBg.fillRect(x, y, this.healthBarWidth, this.healthBarHeight);
 
-    // Foreground (health)
+    
     this.healthBarFg.clear();
     let healthPercent = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
     let color = 0xc8c3ad;
